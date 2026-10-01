@@ -14,6 +14,18 @@ header { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 12px; paddi
 header h1 { font-size:16px; margin:0; font-weight:700; }
 header .help { color:var(--sub); font-size:13px; }
 main { display:grid; grid-template-columns: minmax(0, 1fr) 380px; min-height:calc(100vh - 49px); }
+#ink { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; touch-action:none; }
+#ink.on { pointer-events:auto; cursor:crosshair; }
+#inkText { position:absolute; z-index:3; font-size:16px; padding:4px 8px; background:rgba(0,0,0,.75); color:#fff; border:1px solid var(--accent); border-radius:4px; width:min(260px, 60%); outline:none; }
+.draw { display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:8px 16px; border-bottom:1px solid var(--line); }
+.draw button { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:6px 10px; font-size:13px; min-height:34px; cursor:pointer; white-space:nowrap; }
+.draw button b { font-weight:400; } .draw button i { font-style:normal; }
+.draw button.on { border-color:var(--accent); color:var(--accent); }
+.draw .dot { width:28px; height:28px; min-height:28px; padding:0; border-radius:50%; background:var(--c); border:2px solid var(--line); }
+.draw .dot.on { border-color:var(--bg); box-shadow:0 0 0 2px var(--c); }
+.draw .lbl { color:var(--sub); font-size:12px; }
+.draw .sep { width:1px; height:22px; background:var(--line); }
+li .t small { font-size:11px; color:var(--sub); margin-left:2px; }
 @media (max-width: 1000px) { main { grid-template-columns: 1fr; } }
 .left { display:flex; flex-direction:column; min-width:0; border-right:1px solid var(--line); }
 .vwrap { position:relative; width:100%; aspect-ratio:16/9; max-height:64vh; background:#000; }
@@ -51,14 +63,17 @@ main { display:grid; grid-template-columns: minmax(0, 1fr) 380px; min-height:cal
   .steps { gap:4px; } .steps button { padding:8px 7px; font-size:12px; } .steps .write { font-size:13px; }
   .entry { padding-top:8px; padding-bottom:8px; } .stamp { min-width:40px; font-size:13px; }
   .who input { font-size:16px; max-width:none; }
-  .ver { position:static; display:block; text-align:right; padding:8px 12px 16px; }
+  .draw { gap:4px; padding:6px 12px; } .draw .lbl, .draw button i { display:none; } .draw button { padding:4px 8px; min-height:32px; font-size:14px; }
+  .draw .dot { width:26px; height:26px; min-height:26px; } .draw .sep { display:none; }
+  body.typing .steps, body.typing .draw { display:none; }
+  body .ver { position:static; display:block; text-align:right; padding:8px 12px 16px; }
 }
 .right { display:flex; flex-direction:column; min-height:0; }
 .tools { display:flex; gap:8px; padding:12px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
 .tools .primary { background:var(--accent); color:#111; border-color:var(--accent); font-weight:700; }
 .count { color:var(--sub); font-size:13px; padding:8px 12px 0; }
 ol { list-style:none; margin:0; padding:8px 0; overflow:auto; flex:1; }
-li { display:grid; grid-template-columns: 56px 1fr 24px; gap:6px; padding:8px 12px; border-bottom:1px solid var(--line); }
+li { display:grid; grid-template-columns: 66px 1fr 24px; gap:6px; padding:8px 12px; border-bottom:1px solid var(--line); }
 li:hover { background:var(--hit); }
 li .t { color:var(--accent); cursor:pointer; font-variant-numeric: tabular-nums; font-weight:700; }
 li .c { outline:none; white-space:pre-wrap; word-break:break-all; }
@@ -76,6 +91,7 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--accent); out
   <section class="left">
     <div class="player">
     <div class="vwrap"><div id="yt"></div><div class="shield" id="shield" title="クリックで再生・停止"></div>
+      <canvas id="ink"></canvas><input id="inkText" hidden placeholder="文字を入れて Enter" autocomplete="off" enterkeyhint="done">
       <div class="msg" id="msg" hidden>
         <p>見る動画の YouTube のリンクを貼ってください</p>
         <input id="url" placeholder="https://youtu.be/…" autocomplete="off">
@@ -95,15 +111,31 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--accent); out
       <button id="f2" title="2秒進む（Shift＋→）">2秒»</button>
       <button id="write" class="write" title="止めてコメントを書く（Enter）">✎ 止めて書く</button>
     </div>
+    <div class="draw" id="draw" hidden>
+      <span class="lbl">画面に描く</span>
+      <button data-tool="p" title="ペン"><b>✏︎</b><i> ペン</i></button>
+      <button data-tool="a" title="矢印"><b>↗</b><i> 矢印</i></button>
+      <button data-tool="r" title="四角"><b>▢</b><i> 四角</i></button>
+      <button data-tool="o" title="丸"><b>◯</b><i> 丸</i></button>
+      <button data-tool="t" title="文字"><b>Ａ</b><i> 文字</i></button>
+      <span class="sep"></span>
+      <button data-color="y" class="dot" style="--c:#f2d33a" title="黄"></button>
+      <button data-color="r" class="dot" style="--c:#ff4d4d" title="赤"></button>
+      <button data-color="w" class="dot" style="--c:#ffffff" title="白"></button>
+      <span class="sep"></span>
+      <button id="undo" title="1つ戻す"><b>↶</b><i> 戻す</i></button>
+      <button id="wipe" title="描いたものを全部消す"><b>✕</b><i> 消す</i></button>
+    </div>
     <div class="entry"><span class="stamp" id="stamp">--:--</span>
       <input id="box" placeholder="直したいことを書いて Enter（例：文字を大きく）" autocomplete="off" enterkeyhint="send">
       <button id="add">追加</button></div>
     </div>
     <div class="who"><label for="name">名前</label><input id="name" placeholder="コメントに付く名前（任意）" autocomplete="off"></div>
     <div class="sections" id="secs"></div>
-    <div class="keys" id="tkeys" hidden>「✎ 止めて書く」で止まって時刻が入ります → 文を書いて「追加」。動画を直接タップしても再生・停止できます。<br>
+    <div class="keys" id="tkeys" hidden>「✎ 止めて書く」で止まって時刻が入ります → 文を書いて「追加」。止めている間は画面に指で描けます（ペン・矢印・四角・丸・文字）。動画を直接タップしても再生・停止できます。<br>
       コメントはこのブラウザに自動で残ります（閉じても続きから）。一覧の時刻を押すとその場面へ。文は押すと直せます。最後に「全部コピー」→ LINE などで送ってください。</div>
     <div class="keys" id="keys">スペース：再生・停止　← →：1コマ戻る・進む（止めた状態で。YouTube なので少しずれることがあります）　Shift＋← →：2秒戻る・進む　Enter：コメント　Esc：コメントをやめて再生<br>
+      止めている間は画面に描けます（ペン・矢印・四角・丸・文字。色は黄・赤・白）。描いたものはコメントと一緒に残り、一覧の時刻を押すと出ます。<br>
       コメントはこのブラウザに自動で残ります（閉じても続きから）。一覧の時刻を押すとその場面へ。文はクリックで直せます。</div>
   </section>
   <section class="right">
@@ -117,7 +149,7 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--accent); out
   </section>
 </main>
 <div class="toast" id="toast"></div>
-<div class="ver">動画確認ページ YouTube版 v1.2.0</div>
+<div class="ver">動画確認ページ YouTube版 v1.3.0</div>
 <script>
 // 使い方：https://<ユーザー>.github.io/video-review/?v=<YouTube の動画ID か URL>&title=<題>&fps=29.97&ch=<秒>:<区間名>,<秒>:<区間名>
 // このページには番組の中身（字幕・文字起こし）は置かない。どの動画かはリンクで渡す。コメントは見た人のブラウザにだけ残る。
@@ -162,7 +194,7 @@ const P = {
 window.onYouTubeIframeAPIReady = function () {
   if (!VID) { document.getElementById("msg").hidden = false; return; }
   player = new YT.Player("yt", { videoId: VID, playerVars: { controls: 0, cc_load_policy: 0, rel: 0, playsinline: 1, modestbranding: 1, disablekb: 1, iv_load_policy: 3 },
-    events: { onReady: () => { ready = true; upd(); }, onStateChange: e => { if (e.data === 1) noCC(); upd(); } } });
+    events: { onReady: () => { ready = true; upd(); }, onStateChange: e => { if (e.data === 1) { noCC(); if (shown) { shown = null; drawInk(); } } upd(); } } });
 };
 function noCC() {        // YouTube の自動字幕は消す（動画に焼き込んだテロップと重なるため）
   try { player.unloadModule("captions"); player.unloadModule("cc"); } catch (e) {}
@@ -175,12 +207,16 @@ document.getElementById("go").onclick = () => {
 const s = document.createElement("script"); s.src = "https://www.youtube.com/iframe_api"; document.head.append(s);
 
 let pinned = null;
-function pin() { P.pause(); pinned = P.t(); stamp.textContent = fmt(pinned); }
+function pin() { P.pause(); pinned = P.t(); stamp.textContent = fmt(pinned); shown = null; inkMode(true); }
+function unpin() { box.value = ""; pinned = null; stamp.textContent = "--:--"; box.blur(); inkMode(false); P.play(); }
 function commit() {
   if (pinned === null) pin();
-  const text = box.value.trim();
-  if (text) { items.push({ t: pinned, text, sec: secAt(pinned) }); items.sort((a, b) => a.t - b.t); save(); render(); toast(fmt(pinned) + " に追加"); }
-  box.value = ""; pinned = null; stamp.textContent = "--:--"; box.blur(); P.play();
+  const text = box.value.trim() || (shapes.length ? "（描き込み）" : "");
+  if (text) {
+    const it = { t: pinned, text, sec: secAt(pinned) }; if (shapes.length) it.d = shapes.map(roundShape);
+    items.push(it); items.sort((a, b) => a.t - b.t); save(); render(); toast(fmt(pinned) + " に追加");
+  }
+  unpin();
 }
 // スマホ・タブレット（Enter や矢印キーが無い）用のボタン
 const TOUCH = matchMedia("(pointer: coarse)").matches;
@@ -188,8 +224,11 @@ document.getElementById("write").onclick = () => { pin(); box.focus(); };
 document.getElementById("add").onclick = () => commit();
 document.getElementById("b1").onclick = () => step(-1);
 document.getElementById("f1").onclick = () => step(1);
-document.getElementById("b2").onclick = () => P.seek(P.t() - 2);
-document.getElementById("f2").onclick = () => P.seek(P.t() + 2);
+document.getElementById("b2").onclick = () => moveTo(P.t() - 2);
+document.getElementById("f2").onclick = () => moveTo(P.t() + 2);
+box.addEventListener("focus", () => document.body.classList.add("typing"));
+box.addEventListener("blur", () => setTimeout(() => { if (document.activeElement !== box) document.body.classList.remove("typing"); }, 250));   // すぐ戻すと「追加」の位置がずれて押せない
+document.getElementById("add").addEventListener("mousedown", e => e.preventDefault());   // 押しても入力欄から外れないように
 document.querySelectorAll(".steps button:not(.write)").forEach(b => b.addEventListener("click", () => b.blur()));
 box.addEventListener("touchstart", () => { if (pinned === null) pin(); }, { passive: true });
 if (TOUCH) {   // 透明の板を外して、動画を直接タップできるようにする（スマホは最初の再生を動画のタップで始める必要がある）
@@ -205,17 +244,18 @@ box.addEventListener("keydown", e => {
   if (e.isComposing) return;
   if (e.key === "Enter" || e.key === "Escape") e.stopPropagation();
   if (e.key === "Enter") { e.preventDefault(); commit(); }
-  else if (e.key === "Escape") { box.value = ""; pinned = null; stamp.textContent = "--:--"; box.blur(); P.play(); }
+  else if (e.key === "Escape") unpin();
 });
-function step(d) { const cur = Math.floor(P.t() * FPS + 0.01); P.pause(); P.seek((cur + d + 0.5) / FPS); setTimeout(upd, 150); }
+function moveTo(t) { t = Math.max(0, t); P.seek(t); if (pinned !== null) { pinned = t; stamp.textContent = fmt(t); } setTimeout(upd, 150); }   // 書いている途中なら時刻も動かす
+function step(d) { const cur = Math.floor(P.t() * FPS + 0.01); P.pause(); moveTo((cur + d + 0.5) / FPS); }
 document.addEventListener("keydown", e => {
   const a = document.activeElement;
-  if (a === box || a === nameEl || (a && (a.isContentEditable || a.id === "url"))) return;
+  if (a === box || a === nameEl || (a && (a.isContentEditable || a.id === "url" || a.id === "inkText"))) return;
   if (e.key === "Enter") { e.preventDefault(); pin(); box.focus(); }
   else if (e.key === " ") { e.preventDefault(); P.paused() ? P.play() : P.pause(); }
   else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
     e.preventDefault(); const dir = e.key === "ArrowLeft" ? -1 : 1;
-    if (e.shiftKey) P.seek(P.t() + 2 * dir); else step(dir);
+    if (e.shiftKey) moveTo(P.t() + 2 * dir); else step(dir);
   }
 });
 
@@ -234,7 +274,7 @@ pp.onclick = () => {
   if (was && TOUCH) setTimeout(() => { if (P.paused()) toast("動画を直接タップして再生してください"); }, 1500);
 };
 document.getElementById("shield").onclick = () => { P.paused() ? P.play() : P.pause(); };
-seek.addEventListener("input", () => { seeking = true; if (P.d()) P.seek(seek.value / 1000 * P.d()); });
+seek.addEventListener("input", () => { seeking = true; if (P.d()) moveTo(seek.value / 1000 * P.d()); });
 seek.addEventListener("change", () => { seeking = false; seek.blur(); });
 vol.addEventListener("input", () => { if (ready) { player.setVolume(Number(vol.value)); player.unMute(); } mute.textContent = "🔊"; });
 vol.addEventListener("change", () => vol.blur());
@@ -247,7 +287,8 @@ function render() {
   items.forEach((it, i) => {
     const li = document.createElement("li");
     const t = document.createElement("span"); t.className = "t"; t.textContent = fmt(it.t);
-    t.onclick = () => { P.seek(it.t); P.pause(); };
+    if (it.d) { const m = document.createElement("small"); m.textContent = "✎"; m.title = "描き込みあり"; t.append(m); }
+    t.onclick = () => { if (pinned !== null) unpin(); P.seek(it.t); P.pause(); setTimeout(() => { P.pause(); shown = it.d || null; drawInk(); }, 300); };
     const c = document.createElement("span"); c.className = "c"; c.contentEditable = "true"; c.textContent = it.text;
     c.onblur = () => { it.text = c.textContent.trim(); save(); };
     const del = document.createElement("button"); del.className = "del"; del.textContent = "×"; del.title = "消す";
@@ -258,7 +299,7 @@ function render() {
 function asText() {
   const who = nameEl.value.trim();
   const head = "【" + (TITLE || VID) + "】確認コメント " + items.length + "件" + (who ? "（" + who + "）" : "");
-  return [head].concat(items.map(it => fmt(it.t) + " " + it.text + (it.sec ? "　（区間：" + it.sec + "）" : ""))).join("\n");
+  return [head].concat(items.map(it => fmt(it.t) + " " + it.text + (it.sec ? "　（区間：" + it.sec + "）" : "") + (it.d ? "\n　✎ @" + it.t.toFixed(2) + " " + inkDesc(it.d) : ""))).join("\n");
 }
 document.getElementById("copy").onclick = async () => {
   const txt = asText();
@@ -275,6 +316,113 @@ document.getElementById("clear").onclick = (e) => {      // 確認は2回押し�
   if (!armed) { armed = true; e.target.textContent = "もう一度押すと全部消えます"; setTimeout(() => { armed = false; e.target.textContent = "全部消す"; }, 3000); return; }
   items = []; save(); render(); armed = false; e.target.textContent = "全部消す";
 };
+// ---- 描き込み（止めた画面に矢印・丸・文字など）。位置は動画の絵に対する割合（0〜1）で持つ。
+// YouTube の絵はページから画像にできない（ブラウザの決まり）ので、残すのは形と位置だけ。受け取った側で同じ時刻の絵に重ねる。
+const ink = document.getElementById("ink"), ictx = ink.getContext("2d"), vwrap = document.querySelector(".vwrap");
+const inkText = document.getElementById("inkText"), drawBar = document.getElementById("draw");
+const COLORS = { y: "#f2d33a", r: "#ff4d4d", w: "#ffffff" }, CNAME = { y: "黄", r: "赤", w: "白" };
+const KIND = { p: "線", a: "矢印", r: "四角", o: "丸", t: "文字" };
+let tool = "a", color = "y", shapes = [], shown = null, live = null, textAt = null;
+function vrect() {          // 枠の中で動画の絵が映っている範囲（枠が 16:9 でない時は黒帯がつく）
+  const W = vwrap.clientWidth, H = vwrap.clientHeight, A = 16 / 9;
+  return W / H > A ? { x: (W - H * A) / 2, y: 0, w: H * A, h: H } : { x: 0, y: (H - W / A) / 2, w: W, h: W / A };
+}
+function fitInk() { const dpr = devicePixelRatio || 1; ink.width = vwrap.clientWidth * dpr; ink.height = vwrap.clientHeight * dpr; ictx.setTransform(dpr, 0, 0, dpr, 0, 0); drawInk(); }
+function drawShape(g, sh, r) {
+  const X = v => r.x + v[0] * r.w, Y = v => r.y + v[1] * r.h, lw = Math.max(2.5, r.h * 0.008);
+  g.save(); g.strokeStyle = g.fillStyle = COLORS[sh.c] || COLORS.y; g.lineWidth = lw; g.lineCap = g.lineJoin = "round";
+  g.shadowColor = "rgba(0,0,0,.7)"; g.shadowBlur = lw * 1.5;
+  const p0 = sh.pts[0], p1 = sh.pts[sh.pts.length - 1];
+  g.beginPath();
+  if (sh.k === "p") { sh.pts.forEach((q, i) => i ? g.lineTo(X(q), Y(q)) : g.moveTo(X(q), Y(q))); g.stroke(); }
+  else if (sh.k === "a") {
+    const x0 = X(p0), y0 = Y(p0), x1 = X(p1), y1 = Y(p1), an = Math.atan2(y1 - y0, x1 - x0), hl = lw * 4.5;
+    g.moveTo(x0, y0); g.lineTo(x1 - hl * 0.6 * Math.cos(an), y1 - hl * 0.6 * Math.sin(an)); g.stroke();
+    g.beginPath(); g.moveTo(x1, y1); g.lineTo(x1 - hl * Math.cos(an - 0.45), y1 - hl * Math.sin(an - 0.45));
+    g.lineTo(x1 - hl * Math.cos(an + 0.45), y1 - hl * Math.sin(an + 0.45)); g.closePath(); g.fill();
+  }
+  else if (sh.k === "r") g.strokeRect(Math.min(X(p0), X(p1)), Math.min(Y(p0), Y(p1)), Math.abs(X(p1) - X(p0)), Math.abs(Y(p1) - Y(p0)));
+  else if (sh.k === "o") { g.ellipse((X(p0) + X(p1)) / 2, (Y(p0) + Y(p1)) / 2, Math.abs(X(p1) - X(p0)) / 2, Math.abs(Y(p1) - Y(p0)) / 2, 0, 0, Math.PI * 2); g.stroke(); }
+  else if (sh.k === "t") {
+    const fs = Math.max(14, r.h * 0.055); g.font = "700 " + fs + "px 'Hiragino Sans','Noto Sans JP',sans-serif"; g.textBaseline = "top";
+    g.shadowBlur = 0; g.lineWidth = fs * 0.2; g.strokeStyle = "rgba(0,0,0,.85)"; g.strokeText(sh.s, X(p0), Y(p0)); g.fillText(sh.s, X(p0), Y(p0));
+  }
+  g.restore();
+}
+function drawInk() {
+  ictx.clearRect(0, 0, vwrap.clientWidth, vwrap.clientHeight);
+  const r = vrect(), arr = pinned !== null ? shapes : (shown || []);
+  arr.forEach(sh => drawShape(ictx, sh, r)); if (live) drawShape(ictx, live, r);
+}
+function inkMode(on) {
+  drawBar.hidden = !on; ink.classList.toggle("on", on);
+  if (!on) { shapes = []; live = null; closeText(false); }
+  markBar(); drawInk();
+}
+function markBar() {
+  drawBar.querySelectorAll("[data-tool]").forEach(b => b.classList.toggle("on", b.dataset.tool === tool));
+  drawBar.querySelectorAll("[data-color]").forEach(b => b.classList.toggle("on", b.dataset.color === color));
+}
+function norm(e) { const b = vwrap.getBoundingClientRect(), r = vrect(), c = v => Math.min(1, Math.max(0, v));
+  return [c((e.clientX - b.left - r.x) / r.w), c((e.clientY - b.top - r.y) / r.h)]; }
+function simplify(pts, eps = 0.003) {       // 線の点を減らす（形は保つ）
+  if (pts.length < 3) return pts;
+  const keep = new Uint8Array(pts.length); keep[0] = keep[pts.length - 1] = 1; const st = [[0, pts.length - 1]];
+  while (st.length) {
+    const [i, j] = st.pop(), [ax, ay] = pts[i], [bx, by] = pts[j], L = Math.hypot(bx - ax, by - ay) || 1e-9; let m = -1, md = eps;
+    for (let k = i + 1; k < j; k++) { const d = Math.abs((bx - ax) * (ay - pts[k][1]) - (ax - pts[k][0]) * (by - ay)) / L; if (d > md) { md = d; m = k; } }
+    if (m > 0) { keep[m] = 1; st.push([i, m], [m, j]); }
+  }
+  return pts.filter((_, k) => keep[k]);
+}
+function roundShape(sh) { const o = { k: sh.k, c: sh.c, pts: sh.pts.map(q => [Math.round(q[0] * 1000) / 1000, Math.round(q[1] * 1000) / 1000]) }; if (sh.s) o.s = sh.s; return o; }
+function inkDesc(d) {       // コピーする文の描き込み行（位置は画面の左上からの %）
+  const P2 = q => Math.round(q[0] * 100) + "," + Math.round(q[1] * 100);
+  return d.map(sh => { const h = KIND[sh.k] + "(" + CNAME[sh.c] + ") ";
+    if (sh.k === "p") return h + sh.pts.map(P2).join(" ");
+    if (sh.k === "t") return h + P2(sh.pts[0]) + "「" + sh.s + "」";
+    return h + P2(sh.pts[0]) + "→" + P2(sh.pts[sh.pts.length - 1]); }).join(" / ");
+}
+ink.addEventListener("pointerdown", e => {
+  if (pinned === null) return; e.preventDefault();
+  const q = norm(e);
+  if (tool === "t") { openText(q, e); return; }
+  ink.setPointerCapture(e.pointerId); live = { k: tool, c: color, pts: tool === "p" ? [q] : [q, q] };
+});
+ink.addEventListener("pointermove", e => { if (!live) return; const q = norm(e); if (live.k === "p") live.pts.push(q); else live.pts[1] = q; drawInk(); });
+function endStroke() {
+  if (!live) return; const sh = live; live = null;
+  if (sh.k === "p") sh.pts = simplify(sh.pts);
+  const a = sh.pts[0], b = sh.pts[sh.pts.length - 1];
+  const ok = sh.k === "p" ? sh.pts.length > 1 : Math.hypot(b[0] - a[0], b[1] - a[1]) > 0.012;
+  if (ok) shapes.push(sh); drawInk();
+}
+ink.addEventListener("pointerup", endStroke); ink.addEventListener("pointercancel", () => { live = null; drawInk(); });
+function openText(q, e) {
+  closeText(true); textAt = q;
+  const b = vwrap.getBoundingClientRect();
+  inkText.style.left = Math.min(e.clientX - b.left, b.width - 160) + "px"; inkText.style.top = Math.min(e.clientY - b.top, b.height - 40) + "px";
+  inkText.value = ""; inkText.hidden = false; setTimeout(() => inkText.focus(), 0);
+}
+function closeText(keep) {
+  if (inkText.hidden) return;
+  const v = inkText.value.trim(); inkText.hidden = true;
+  if (keep && v && textAt && pinned !== null) { shapes.push({ k: "t", c: color, pts: [textAt], s: v }); drawInk(); }
+  textAt = null;
+}
+inkText.addEventListener("keydown", e => {
+  if (e.isComposing) return; e.stopPropagation();
+  if (e.key === "Enter") { e.preventDefault(); closeText(true); }
+  else if (e.key === "Escape") { inkText.value = ""; closeText(false); }
+});
+inkText.addEventListener("blur", () => closeText(true));
+drawBar.querySelectorAll("[data-tool]").forEach(b => b.onclick = () => { tool = b.dataset.tool; markBar(); b.blur(); });
+drawBar.querySelectorAll("[data-color]").forEach(b => b.onclick = () => { color = b.dataset.color; markBar(); b.blur(); });
+document.getElementById("undo").onclick = e => { shapes.pop(); drawInk(); e.currentTarget.blur(); };
+document.getElementById("wipe").onclick = e => { shapes = []; drawInk(); e.currentTarget.blur(); };
+new ResizeObserver(fitInk).observe(vwrap);
+markBar();
+
 const secs = document.getElementById("secs");
 SECTIONS.forEach(sc => { const b = document.createElement("button"); b.textContent = sc.name + " " + fmt(sc.t); b.onclick = () => P.seek(sc.t); secs.append(b); });
 render();
