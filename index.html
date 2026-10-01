@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>動画確認ページ</title>
+<style>
+:root { --bg:#111214; --panel:#1b1c1f; --line:#2c2e33; --text:#ececec; --sub:#9a9ca3; --accent:#f2d33a; --hit:#2a2c31; --err:#ff6b6b; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin:0; background:var(--bg); color:var(--text); font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif; font-size:15px; }
+header { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 12px; padding:12px 16px; border-bottom:1px solid var(--line); }
+header h1 { font-size:16px; margin:0; font-weight:700; }
+header .help { color:var(--sub); font-size:13px; }
+main { display:grid; grid-template-columns: minmax(0, 1fr) 380px; min-height:calc(100vh - 49px); }
+@media (max-width: 1000px) { main { grid-template-columns: 1fr; } }
+.left { display:flex; flex-direction:column; min-width:0; border-right:1px solid var(--line); }
+.vwrap { position:relative; width:100%; aspect-ratio:16/9; max-height:64vh; background:#000; }
+.vwrap #yt, .vwrap iframe { position:absolute; inset:0; width:100%; height:100%; }
+.shield { position:absolute; inset:0; cursor:pointer; }            /* 動画をクリックしても YouTube 側にキーを取られないように */
+.msg { position:absolute; inset:0; display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center; text-align:center; padding:16px; color:var(--sub); }
+.msg input { width:min(520px, 100%); font-size:15px; padding:10px 12px; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; }
+.msg button { background:var(--accent); color:#111; border:none; border-radius:6px; padding:10px 18px; font-weight:700; cursor:pointer; }
+.bar { display:flex; align-items:center; gap:10px; padding:8px 16px; background:#000; border-bottom:1px solid var(--line); }
+.bar button { background:none; border:none; color:var(--text); font-size:18px; cursor:pointer; width:32px; }
+.bar .tc { font-variant-numeric: tabular-nums; font-size:14px; min-width:120px; }
+.bar #seek { flex:1; accent-color: var(--accent); min-width:0; }
+.bar #vol { width:80px; accent-color: var(--accent); }
+.entry { display:flex; gap:8px; align-items:center; padding:12px 16px; border-bottom:1px solid var(--line); }
+.stamp { font-variant-numeric: tabular-nums; color:var(--accent); min-width:64px; font-weight:700; }
+#box { flex:1; min-width:0; font-size:16px; padding:10px 12px; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; outline:none; }
+#box:focus { border-color:var(--accent); }
+.who { display:flex; gap:8px; align-items:center; padding:10px 16px; color:var(--sub); font-size:13px; border-bottom:1px solid var(--line); }
+.who input { flex:1; max-width:240px; font-size:14px; padding:6px 10px; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; }
+.sections { display:flex; flex-wrap:wrap; gap:6px; padding:12px 16px; }
+.sections:empty { display:none; }
+.sections button, .tools button { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:6px 10px; font-size:13px; cursor:pointer; }
+.sections button:hover, .tools button:hover { border-color:var(--accent); }
+.keys { color:var(--sub); font-size:12px; padding:8px 16px 12px; line-height:1.7; }
+.right { display:flex; flex-direction:column; min-height:0; }
+.tools { display:flex; gap:8px; padding:12px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+.tools .primary { background:var(--accent); color:#111; border-color:var(--accent); font-weight:700; }
+.count { color:var(--sub); font-size:13px; padding:8px 12px 0; }
+ol { list-style:none; margin:0; padding:8px 0; overflow:auto; flex:1; }
+li { display:grid; grid-template-columns: 56px 1fr 24px; gap:6px; padding:8px 12px; border-bottom:1px solid var(--line); }
+li:hover { background:var(--hit); }
+li .t { color:var(--accent); cursor:pointer; font-variant-numeric: tabular-nums; font-weight:700; }
+li .c { outline:none; white-space:pre-wrap; word-break:break-all; }
+li .del { background:none; border:none; color:var(--sub); cursor:pointer; font-size:16px; }
+li .del:hover { color:var(--err); }
+.toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--accent); color:#111; padding:8px 16px; border-radius:6px; font-weight:700; opacity:0; transition:opacity .2s; pointer-events:none; }
+.toast.show { opacity:1; }
+.ver { position:fixed; right:10px; bottom:6px; color:var(--sub); font-size:11px; opacity:.6; }
+button:focus-visible, input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+</style>
+</head>
+<body>
+<header><h1 id="ttl">動画確認ページ</h1><span class="help">止めたい所で <b>Enter</b> → 文を打って <b>Enter</b>。時刻は自動で入ります。最後に「全部コピー」→ 送ってください</span></header>
+<main>
+  <section class="left">
+    <div class="vwrap"><div id="yt"></div><div class="shield" id="shield" title="クリックで再生・停止"></div>
+      <div class="msg" id="msg" hidden>
+        <p>見る動画の YouTube のリンクを貼ってください</p>
+        <input id="url" placeholder="https://youtu.be/…" autocomplete="off">
+        <button id="go">開く</button>
+      </div></div>
+    <div class="bar">
+      <button id="pp" title="再生・停止（スペース）">▶</button>
+      <span class="tc" id="tc">0:00 / 0:00</span>
+      <input type="range" id="seek" min="0" max="1000" value="0" step="1" aria-label="再生位置">
+      <button id="mute" title="音を消す">🔊</button>
+      <input type="range" id="vol" min="0" max="100" step="5" value="100" title="音量" aria-label="音量">
+    </div>
+    <div class="entry"><span class="stamp" id="stamp">--:--</span>
+      <input id="box" placeholder="ここに修正したいことを書いて Enter（例：文字を大きく／BGMがうるさい）" autocomplete="off"></div>
+    <div class="who"><label for="name">名前</label><input id="name" placeholder="コメントに付く名前（任意）" autocomplete="off"></div>
+    <div class="sections" id="secs"></div>
+    <div class="keys">スペース：再生・停止　← →：1コマ戻る・進む（止めた状態で。YouTube なので少しずれることがあります）　Shift＋← →：2秒戻る・進む　Enter：コメント　Esc：コメントをやめて再生<br>
+      コメントはこのブラウザに自動で残ります（閉じても続きから）。一覧の時刻を押すとその場面へ。文はクリックで直せます。</div>
+  </section>
+  <section class="right">
+    <div class="tools">
+      <button class="primary" id="copy">全部コピー</button>
+      <button id="dl">ファイルに保存</button>
+      <button id="clear">全部消す</button>
+    </div>
+    <div class="count" id="count"></div>
+    <ol id="list"></ol>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+<div class="ver">動画確認ページ YouTube版 v1.0.0</div>
+<script>
+// 使い方：https://<ユーザー>.github.io/video-review/?v=<YouTube の動画ID か URL>&title=<題>&fps=29.97&ch=<秒>:<区間名>,<秒>:<区間名>
+// このページには番組の中身（字幕・文字起こし）は置かない。どの動画かはリンクで渡す。コメントは見た人のブラウザにだけ残る。
+const Q = new URLSearchParams(location.search);
+function videoIdOf(s) {
+  if (!s) return "";
+  s = s.trim();
+  const m = s.match(/(?:youtu\.be\/|v=|\/embed\/|\/shorts\/|\/live\/)([A-Za-z0-9_-]{11})/);
+  if (m) return m[1];
+  return /^[A-Za-z0-9_-]{11}$/.test(s) ? s : "";
+}
+const VID = videoIdOf(Q.get("v") || location.hash.replace(/^#/, ""));
+const TITLE = Q.get("title") || "";
+const FPS = Number(Q.get("fps")) || 30000 / 1001;
+const SECTIONS = (Q.get("ch") || "").split(",").map(x => { const k = x.indexOf(":"); return k > 0 ? { t: Number(x.slice(0, k)), name: x.slice(k + 1) } : null; })
+  .filter(x => x && isFinite(x.t) && x.name);
+const KEY = "ytreview:" + VID;
+document.getElementById("ttl").textContent = (TITLE || "動画確認ページ") + "  確認";
+if (TITLE) document.title = TITLE + " 確認";
+
+const box = document.getElementById("box"), stamp = document.getElementById("stamp"), list = document.getElementById("list");
+const nameEl = document.getElementById("name");
+let items = [];
+try { items = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { items = []; }
+try { nameEl.value = localStorage.getItem("ytreview:name") || ""; } catch (e) {}
+nameEl.addEventListener("change", () => { try { localStorage.setItem("ytreview:name", nameEl.value.trim()); } catch (e) {} });
+function save() { try { localStorage.setItem(KEY, JSON.stringify(items)); } catch (e) {} }
+function fmt(t) { t = Math.max(0, t || 0); const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), s = Math.floor(t % 60);
+  return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(s).padStart(2, "0"); }
+function secAt(t) { let sec = null; for (const s of SECTIONS) if (s.t <= t + 0.05) sec = s.name; return sec; }
+function toast(m) { const e = document.getElementById("toast"); e.textContent = m; e.classList.add("show"); setTimeout(() => e.classList.remove("show"), 1400); }
+
+// ---- YouTube プレーヤー（YouTube の操作バーは出さない。止めても画面の下の字幕が隠れないように）
+let player = null, ready = false;
+const P = {
+  t() { return ready ? player.getCurrentTime() : 0; },
+  d() { return ready ? player.getDuration() : 0; },
+  paused() { return !ready || player.getPlayerState() !== 1; },
+  play() { ready && player.playVideo(); }, pause() { ready && player.pauseVideo(); },
+  seek(t) { ready && player.seekTo(Math.max(0, t), true); },
+};
+window.onYouTubeIframeAPIReady = function () {
+  if (!VID) { document.getElementById("msg").hidden = false; return; }
+  player = new YT.Player("yt", { videoId: VID, playerVars: { controls: 0, rel: 0, playsinline: 1, modestbranding: 1, disablekb: 1, iv_load_policy: 3 },
+    events: { onReady: () => { ready = true; upd(); }, onStateChange: upd } });
+};
+document.getElementById("go").onclick = () => {
+  const id = videoIdOf(document.getElementById("url").value);
+  if (!id) { toast("YouTube のリンクを確かめてください"); return; }
+  const q = new URLSearchParams(location.search); q.set("v", id); location.search = q.toString();
+};
+const s = document.createElement("script"); s.src = "https://www.youtube.com/iframe_api"; document.head.append(s);
+
+let pinned = null;
+function pin() { P.pause(); pinned = P.t(); stamp.textContent = fmt(pinned); }
+box.addEventListener("mousedown", () => { if (pinned === null) pin(); });
+box.addEventListener("input", () => { if (pinned === null) pin(); });
+box.addEventListener("keydown", e => {
+  if (e.isComposing) return;
+  if (e.key === "Enter" || e.key === "Escape") e.stopPropagation();
+  if (e.key === "Enter") {
+    e.preventDefault();
+    if (pinned === null) pin();
+    const text = box.value.trim();
+    if (text) { items.push({ t: pinned, text, sec: secAt(pinned) }); items.sort((a, b) => a.t - b.t); save(); render(); toast(fmt(pinned) + " に追加"); }
+    box.value = ""; pinned = null; stamp.textContent = "--:--"; box.blur(); P.play();
+  } else if (e.key === "Escape") { box.value = ""; pinned = null; stamp.textContent = "--:--"; box.blur(); P.play(); }
+});
+function step(d) { const cur = Math.floor(P.t() * FPS + 0.01); P.pause(); P.seek((cur + d + 0.5) / FPS); setTimeout(upd, 150); }
+document.addEventListener("keydown", e => {
+  const a = document.activeElement;
+  if (a === box || a === nameEl || (a && (a.isContentEditable || a.id === "url"))) return;
+  if (e.key === "Enter") { e.preventDefault(); pin(); box.focus(); }
+  else if (e.key === " ") { e.preventDefault(); P.paused() ? P.play() : P.pause(); }
+  else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+    e.preventDefault(); const dir = e.key === "ArrowLeft" ? -1 : 1;
+    if (e.shiftKey) P.seek(P.t() + 2 * dir); else step(dir);
+  }
+});
+
+// ---- 自前の再生バー
+const pp = document.getElementById("pp"), tc = document.getElementById("tc"), seek = document.getElementById("seek");
+const vol = document.getElementById("vol"), mute = document.getElementById("mute");
+let seeking = false;
+function upd() {
+  pp.textContent = P.paused() ? "▶" : "❚❚";
+  tc.textContent = fmt(P.t()) + " / " + fmt(P.d());
+  if (!seeking && P.d()) seek.value = Math.round(P.t() / P.d() * 1000);
+}
+setInterval(upd, 250);
+pp.onclick = () => { P.paused() ? P.play() : P.pause(); pp.blur(); };
+document.getElementById("shield").onclick = () => { P.paused() ? P.play() : P.pause(); };
+seek.addEventListener("input", () => { seeking = true; if (P.d()) P.seek(seek.value / 1000 * P.d()); });
+seek.addEventListener("change", () => { seeking = false; seek.blur(); });
+vol.addEventListener("input", () => { if (ready) { player.setVolume(Number(vol.value)); player.unMute(); } mute.textContent = "🔊"; });
+vol.addEventListener("change", () => vol.blur());
+mute.onclick = () => { if (!ready) return; if (player.isMuted()) { player.unMute(); mute.textContent = "🔊"; } else { player.mute(); mute.textContent = "🔇"; } mute.blur(); };
+
+// ---- コメント一覧
+function render() {
+  list.innerHTML = "";
+  document.getElementById("count").textContent = items.length ? items.length + " 件" : "まだコメントはありません";
+  items.forEach((it, i) => {
+    const li = document.createElement("li");
+    const t = document.createElement("span"); t.className = "t"; t.textContent = fmt(it.t);
+    t.onclick = () => { P.seek(it.t); P.pause(); };
+    const c = document.createElement("span"); c.className = "c"; c.contentEditable = "true"; c.textContent = it.text;
+    c.onblur = () => { it.text = c.textContent.trim(); save(); };
+    const del = document.createElement("button"); del.className = "del"; del.textContent = "×"; del.title = "消す";
+    del.onclick = () => { items.splice(i, 1); save(); render(); };
+    li.append(t, c, del); list.append(li);
+  });
+}
+function asText() {
+  const who = nameEl.value.trim();
+  const head = "【" + (TITLE || VID) + "】確認コメント " + items.length + "件" + (who ? "（" + who + "）" : "");
+  return [head].concat(items.map(it => fmt(it.t) + " " + it.text + (it.sec ? "　（区間：" + it.sec + "）" : ""))).join("\n");
+}
+document.getElementById("copy").onclick = async () => {
+  const txt = asText();
+  try { await navigator.clipboard.writeText(txt); toast("コピーしました。送ってください"); }
+  catch (e) { const ta = document.createElement("textarea"); ta.value = txt; document.body.append(ta); ta.select(); document.execCommand("copy"); ta.remove(); toast("コピーしました"); }
+};
+document.getElementById("dl").onclick = () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([asText()], { type: "text/plain" }));
+  a.download = "確認コメント_" + (TITLE || VID) + ".txt"; a.click(); toast("ダウンロードに保存しました");
+};
+let armed = false;
+document.getElementById("clear").onclick = (e) => {      // 確認は2回押し（ブラウザの確認画面を使わない）
+  if (!armed) { armed = true; e.target.textContent = "もう一度押すと全部消えます"; setTimeout(() => { armed = false; e.target.textContent = "全部消す"; }, 3000); return; }
+  items = []; save(); render(); armed = false; e.target.textContent = "全部消す";
+};
+const secs = document.getElementById("secs");
+SECTIONS.forEach(sc => { const b = document.createElement("button"); b.textContent = sc.name + " " + fmt(sc.t); b.onclick = () => P.seek(sc.t); secs.append(b); });
+render();
+</script>
+</body>
+</html>
