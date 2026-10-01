@@ -27,7 +27,8 @@ YouTube の動画を見ながら、止めた所にコメントを残すための
 ## 作る人へ（リンクの作り方）
 
 ```
-https://takahashi130.github.io/video-review/?v=<YouTube のリンクか動画ID>&title=<題>
+https://takahashi130.github.io/video-review/?v=<動画ID>
+（短いリンクで足りる。題は YouTube の動画の題を自動で使う。&title=<題> や &ch=<秒>:<区間名>,… を足すこともできるが、リンクが長くなる）
 ```
 
 | 項目 | 意味 | 例 |

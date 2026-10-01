@@ -149,7 +149,7 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--accent); out
   </section>
 </main>
 <div class="toast" id="toast"></div>
-<div class="ver">動画確認ページ YouTube版 v1.3.0</div>
+<div class="ver">動画確認ページ YouTube版 v1.4.0</div>
 <script>
 // 使い方：https://<ユーザー>.github.io/video-review/?v=<YouTube の動画ID か URL>&title=<題>&fps=29.97&ch=<秒>:<区間名>,<秒>:<区間名>
 // このページには番組の中身（字幕・文字起こし）は置かない。どの動画かはリンクで渡す。コメントは見た人のブラウザにだけ残る。
@@ -162,7 +162,7 @@ function videoIdOf(s) {
   return /^[A-Za-z0-9_-]{11}$/.test(s) ? s : "";
 }
 const VID = videoIdOf(Q.get("v") || location.hash.replace(/^#/, ""));
-const TITLE = Q.get("title") || "";
+let TITLE = Q.get("title") || "";      // 無い時は YouTube の動画の題を使う（短いリンク ?v=<ID> だけで済むように）
 const FPS = Number(Q.get("fps")) || 30000 / 1001;
 const SECTIONS = (Q.get("ch") || "").split(",").map(x => { const k = x.indexOf(":"); return k > 0 ? { t: Number(x.slice(0, k)), name: x.slice(k + 1) } : null; })
   .filter(x => x && isFinite(x.t) && x.name);
@@ -194,8 +194,12 @@ const P = {
 window.onYouTubeIframeAPIReady = function () {
   if (!VID) { document.getElementById("msg").hidden = false; return; }
   player = new YT.Player("yt", { videoId: VID, playerVars: { controls: 0, cc_load_policy: 0, rel: 0, playsinline: 1, modestbranding: 1, disablekb: 1, iv_load_policy: 3 },
-    events: { onReady: () => { ready = true; upd(); }, onStateChange: e => { if (e.data === 1) { noCC(); if (shown) { shown = null; drawInk(); } } upd(); } } });
+    events: { onReady: () => { ready = true; useVideoTitle(); upd(); }, onStateChange: e => { if (e.data === 1) { noCC(); if (shown) { shown = null; drawInk(); } } upd(); } } });
 };
+function useVideoTitle() {
+  if (TITLE) return;
+  try { const t = (player.getVideoData() || {}).title; if (t) { TITLE = t; document.getElementById("ttl").textContent = t + "  確認"; document.title = t + " 確認"; } } catch (e) {}
+}
 function noCC() {        // YouTube の自動字幕は消す（動画に焼き込んだテロップと重なるため）
   try { player.unloadModule("captions"); player.unloadModule("cc"); } catch (e) {}
 };
