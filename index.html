@@ -38,6 +38,21 @@ main { display:grid; grid-template-columns: minmax(0, 1fr) 380px; min-height:cal
 .sections button, .tools button { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:6px 10px; font-size:13px; cursor:pointer; }
 .sections button:hover, .tools button:hover { border-color:var(--accent); }
 .keys { color:var(--sub); font-size:12px; padding:8px 16px 12px; line-height:1.7; }
+.player { background:var(--bg); }
+.steps { display:flex; gap:6px; padding:8px 16px; border-bottom:1px solid var(--line); }
+.steps button { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:8px 10px; font-size:13px; min-height:40px; cursor:pointer; white-space:nowrap; }
+.steps .write { flex:1 1 auto; background:var(--accent); color:#111; border-color:var(--accent); font-weight:700; font-size:14px; }
+#add { background:var(--accent); color:#111; border:none; border-radius:6px; padding:10px 16px; font-weight:700; font-size:15px; cursor:pointer; white-space:nowrap; }
+@media (max-width: 1000px) { .player { position:sticky; top:0; z-index:5; border-bottom:1px solid var(--line); } .vwrap { max-height:none; } }
+@media (max-width: 600px) {
+  header { padding:10px 12px; } header .help { font-size:12px; }
+  .bar, .steps, .entry, .who, .sections { padding-left:12px; padding-right:12px; }
+  .bar #vol { display:none; } .bar .tc { min-width:0; font-size:13px; }
+  .steps { gap:4px; } .steps button { padding:8px 7px; font-size:12px; } .steps .write { font-size:13px; }
+  .entry { padding-top:8px; padding-bottom:8px; } .stamp { min-width:40px; font-size:13px; }
+  .who input { font-size:16px; max-width:none; }
+  .ver { position:static; display:block; text-align:right; padding:8px 12px 16px; }
+}
 .right { display:flex; flex-direction:column; min-height:0; }
 .tools { display:flex; gap:8px; padding:12px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
 .tools .primary { background:var(--accent); color:#111; border-color:var(--accent); font-weight:700; }
@@ -56,9 +71,10 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--accent); out
 </style>
 </head>
 <body>
-<header><h1 id="ttl">動画確認ページ</h1><span class="help">止めたい所で <b>Enter</b> → 文を打って <b>Enter</b>。時刻は自動で入ります。最後に「全部コピー」→ 送ってください</span></header>
+<header><h1 id="ttl">動画確認ページ</h1><span class="help" id="help">止めたい所で <b>Enter</b> → 文を打って <b>Enter</b>。時刻は自動で入ります。最後に「全部コピー」→ 送ってください</span></header>
 <main>
   <section class="left">
+    <div class="player">
     <div class="vwrap"><div id="yt"></div><div class="shield" id="shield" title="クリックで再生・停止"></div>
       <div class="msg" id="msg" hidden>
         <p>見る動画の YouTube のリンクを貼ってください</p>
@@ -72,11 +88,22 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--accent); out
       <button id="mute" title="音を消す">🔊</button>
       <input type="range" id="vol" min="0" max="100" step="5" value="100" title="音量" aria-label="音量">
     </div>
+    <div class="steps">
+      <button id="b2" title="2秒戻る（Shift＋←）">«2秒</button>
+      <button id="b1" title="1コマ戻る（←）">‹1コマ</button>
+      <button id="f1" title="1コマ進む（→）">1コマ›</button>
+      <button id="f2" title="2秒進む（Shift＋→）">2秒»</button>
+      <button id="write" class="write" title="止めてコメントを書く（Enter）">✎ 止めて書く</button>
+    </div>
     <div class="entry"><span class="stamp" id="stamp">--:--</span>
-      <input id="box" placeholder="ここに修正したいことを書いて Enter（例：文字を大きく／BGMがうるさい）" autocomplete="off"></div>
+      <input id="box" placeholder="直したいことを書いて Enter（例：文字を大きく）" autocomplete="off" enterkeyhint="send">
+      <button id="add">追加</button></div>
+    </div>
     <div class="who"><label for="name">名前</label><input id="name" placeholder="コメントに付く名前（任意）" autocomplete="off"></div>
     <div class="sections" id="secs"></div>
-    <div class="keys">スペース：再生・停止　← →：1コマ戻る・進む（止めた状態で。YouTube なので少しずれることがあります）　Shift＋← →：2秒戻る・進む　Enter：コメント　Esc：コメントをやめて再生<br>
+    <div class="keys" id="tkeys" hidden>「✎ 止めて書く」で止まって時刻が入ります → 文を書いて「追加」。動画を直接タップしても再生・停止できます。<br>
+      コメントはこのブラウザに自動で残ります（閉じても続きから）。一覧の時刻を押すとその場面へ。文は押すと直せます。最後に「全部コピー」→ LINE などで送ってください。</div>
+    <div class="keys" id="keys">スペース：再生・停止　← →：1コマ戻る・進む（止めた状態で。YouTube なので少しずれることがあります）　Shift＋← →：2秒戻る・進む　Enter：コメント　Esc：コメントをやめて再生<br>
       コメントはこのブラウザに自動で残ります（閉じても続きから）。一覧の時刻を押すとその場面へ。文はクリックで直せます。</div>
   </section>
   <section class="right">
@@ -90,7 +117,7 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--accent); out
   </section>
 </main>
 <div class="toast" id="toast"></div>
-<div class="ver">動画確認ページ YouTube版 v1.1.0</div>
+<div class="ver">動画確認ページ YouTube版 v1.2.0</div>
 <script>
 // 使い方：https://<ユーザー>.github.io/video-review/?v=<YouTube の動画ID か URL>&title=<題>&fps=29.97&ch=<秒>:<区間名>,<秒>:<区間名>
 // このページには番組の中身（字幕・文字起こし）は置かない。どの動画かはリンクで渡す。コメントは見た人のブラウザにだけ残る。
@@ -149,18 +176,36 @@ const s = document.createElement("script"); s.src = "https://www.youtube.com/ifr
 
 let pinned = null;
 function pin() { P.pause(); pinned = P.t(); stamp.textContent = fmt(pinned); }
+function commit() {
+  if (pinned === null) pin();
+  const text = box.value.trim();
+  if (text) { items.push({ t: pinned, text, sec: secAt(pinned) }); items.sort((a, b) => a.t - b.t); save(); render(); toast(fmt(pinned) + " に追加"); }
+  box.value = ""; pinned = null; stamp.textContent = "--:--"; box.blur(); P.play();
+}
+// スマホ・タブレット（Enter や矢印キーが無い）用のボタン
+const TOUCH = matchMedia("(pointer: coarse)").matches;
+document.getElementById("write").onclick = () => { pin(); box.focus(); };
+document.getElementById("add").onclick = () => commit();
+document.getElementById("b1").onclick = () => step(-1);
+document.getElementById("f1").onclick = () => step(1);
+document.getElementById("b2").onclick = () => P.seek(P.t() - 2);
+document.getElementById("f2").onclick = () => P.seek(P.t() + 2);
+document.querySelectorAll(".steps button:not(.write)").forEach(b => b.addEventListener("click", () => b.blur()));
+box.addEventListener("touchstart", () => { if (pinned === null) pin(); }, { passive: true });
+if (TOUCH) {   // 透明の板を外して、動画を直接タップできるようにする（スマホは最初の再生を動画のタップで始める必要がある）
+  document.getElementById("shield").hidden = true;
+  document.getElementById("keys").hidden = true;
+  document.getElementById("tkeys").hidden = false;
+  box.placeholder = "直したいことを書く";
+  document.getElementById("help").textContent = "直したい所で「✎ 止めて書く」→ 文を書いて「追加」。最後に「全部コピー」→ 送ってください";
+}
 box.addEventListener("mousedown", () => { if (pinned === null) pin(); });
 box.addEventListener("input", () => { if (pinned === null) pin(); });
 box.addEventListener("keydown", e => {
   if (e.isComposing) return;
   if (e.key === "Enter" || e.key === "Escape") e.stopPropagation();
-  if (e.key === "Enter") {
-    e.preventDefault();
-    if (pinned === null) pin();
-    const text = box.value.trim();
-    if (text) { items.push({ t: pinned, text, sec: secAt(pinned) }); items.sort((a, b) => a.t - b.t); save(); render(); toast(fmt(pinned) + " に追加"); }
-    box.value = ""; pinned = null; stamp.textContent = "--:--"; box.blur(); P.play();
-  } else if (e.key === "Escape") { box.value = ""; pinned = null; stamp.textContent = "--:--"; box.blur(); P.play(); }
+  if (e.key === "Enter") { e.preventDefault(); commit(); }
+  else if (e.key === "Escape") { box.value = ""; pinned = null; stamp.textContent = "--:--"; box.blur(); P.play(); }
 });
 function step(d) { const cur = Math.floor(P.t() * FPS + 0.01); P.pause(); P.seek((cur + d + 0.5) / FPS); setTimeout(upd, 150); }
 document.addEventListener("keydown", e => {
@@ -184,7 +229,10 @@ function upd() {
   if (!seeking && P.d()) seek.value = Math.round(P.t() / P.d() * 1000);
 }
 setInterval(upd, 250);
-pp.onclick = () => { P.paused() ? P.play() : P.pause(); pp.blur(); };
+pp.onclick = () => {
+  const was = P.paused(); was ? P.play() : P.pause(); pp.blur();
+  if (was && TOUCH) setTimeout(() => { if (P.paused()) toast("動画を直接タップして再生してください"); }, 1500);
+};
 document.getElementById("shield").onclick = () => { P.paused() ? P.play() : P.pause(); };
 seek.addEventListener("input", () => { seeking = true; if (P.d()) P.seek(seek.value / 1000 * P.d()); });
 seek.addEventListener("change", () => { seeking = false; seek.blur(); });
