@@ -128,14 +128,17 @@ let player = null, ready = false;
 const P = {
   t() { return ready ? player.getCurrentTime() : 0; },
   d() { return ready ? player.getDuration() : 0; },
-  paused() { return !ready || player.getPlayerState() !== 1; },
+  paused() { return !ready || ![1, 3].includes(player.getPlayerState()); },   // 3＝読み込み中も再生中として扱う
   play() { ready && player.playVideo(); }, pause() { ready && player.pauseVideo(); },
   seek(t) { ready && player.seekTo(Math.max(0, t), true); },
 };
 window.onYouTubeIframeAPIReady = function () {
   if (!VID) { document.getElementById("msg").hidden = false; return; }
-  player = new YT.Player("yt", { videoId: VID, playerVars: { controls: 0, rel: 0, playsinline: 1, modestbranding: 1, disablekb: 1, iv_load_policy: 3 },
-    events: { onReady: () => { ready = true; upd(); }, onStateChange: upd } });
+  player = new YT.Player("yt", { videoId: VID, playerVars: { controls: 0, cc_load_policy: 0, rel: 0, playsinline: 1, modestbranding: 1, disablekb: 1, iv_load_policy: 3 },
+    events: { onReady: () => { ready = true; upd(); }, onStateChange: e => { if (e.data === 1) noCC(); upd(); } } });
+};
+function noCC() {        // YouTube の自動字幕は消す（動画に焼き込んだテロップと重なるため）
+  try { player.unloadModule("captions"); player.unloadModule("cc"); } catch (e) {}
 };
 document.getElementById("go").onclick = () => {
   const id = videoIdOf(document.getElementById("url").value);
