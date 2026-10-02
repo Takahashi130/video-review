@@ -108,10 +108,10 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--accent); out
       <input type="range" id="vol" min="0" max="100" step="5" value="100" title="音量" aria-label="音量">
     </div>
     <div class="steps">
-      <button id="b2" title="2秒戻る（Shift＋←）">«2秒</button>
+      <button id="b2" title="5秒戻る（Shift＋←）">«5秒</button>
       <button id="b1" title="1コマ戻る（←）">‹1コマ</button>
       <button id="f1" title="1コマ進む（→）">1コマ›</button>
-      <button id="f2" title="2秒進む（Shift＋→）">2秒»</button>
+      <button id="f2" title="5秒進む（Shift＋→）">5秒»</button>
       <button id="write" class="write" title="止めてコメントを書く（Enter）">✎ 止めて書く</button>
     </div>
     <div class="draw" id="draw" hidden>
@@ -139,7 +139,7 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--accent); out
     <div class="keys" id="tkeys" hidden>「✎ 止めて書く」で止まって時刻が入ります → 文を書いて「追加」。止めている間は画面に指で描けます（ペン・矢印・四角・丸・文字）。動画を直接タップしても再生・停止できます。<br>
       🎤 を押して話すと、声が文字になります（Chrome・Safari など。Brave では使えません）。<br>
       コメントはこのブラウザに自動で残ります（閉じても続きから）。一覧の時刻を押すとその場面へ。文は押すと直せます。最後に「全部コピー」→ LINE などで送ってください。</div>
-    <div class="keys" id="keys">スペース：再生・停止　← →：1コマ戻る・進む（止めた状態で。YouTube なので少しずれることがあります）　Shift＋← →：2秒戻る・進む　Enter：コメント　Esc：コメントをやめて再生<br>
+    <div class="keys" id="keys">スペース：再生・停止　← →：1コマ戻る・進む（止めた状態で。YouTube なので少しずれることがあります）　Shift＋← →：5秒戻る・進む　Enter：コメント　Esc：コメントをやめて再生<br>
       止めている間は画面に描けます（ペン・矢印・四角・丸・文字。色は黄・赤・白）。描いたものはコメントと一緒に残り、一覧の時刻を押すと出ます。<br>
       🎤 を押して話すと、声が文字になります（Chrome・Edge・Safari。Brave では使えません。声はブラウザの音声認識（Google や Apple）に送られて文字になります）。<br>
       コメントはこのブラウザに自動で残ります（閉じても続きから）。一覧の時刻を押すとその場面へ。文はクリックで直せます。</div>
@@ -155,7 +155,7 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--accent); out
   </section>
 </main>
 <div class="toast" id="toast"></div>
-<div class="ver">動画確認ページ YouTube版 v1.5.0</div>
+<div class="ver">動画確認ページ YouTube版 v1.6.0</div>
 <script>
 // 使い方：https://<ユーザー>.github.io/video-review/?v=<YouTube の動画ID か URL>&title=<題>&fps=29.97&ch=<秒>:<区間名>,<秒>:<区間名>
 // このページには番組の中身（字幕・文字起こし）は置かない。どの動画かはリンクで渡す。コメントは見た人のブラウザにだけ残る。
@@ -234,8 +234,9 @@ document.getElementById("write").onclick = () => { pin(); box.focus(); };
 document.getElementById("add").onclick = () => commit();
 document.getElementById("b1").onclick = () => step(-1);
 document.getElementById("f1").onclick = () => step(1);
-document.getElementById("b2").onclick = () => moveTo(P.t() - 2);
-document.getElementById("f2").onclick = () => moveTo(P.t() + 2);
+const JUMP = 5;   // 「戻る・進む」の秒数（ユーザー：「2秒戻しではなく5秒戻しに」2026-10-02）
+document.getElementById("b2").onclick = () => moveTo(P.t() - JUMP);
+document.getElementById("f2").onclick = () => moveTo(P.t() + JUMP);
 box.addEventListener("focus", () => document.body.classList.add("typing"));
 box.addEventListener("blur", () => setTimeout(() => { if (document.activeElement !== box) document.body.classList.remove("typing"); }, 250));   // すぐ戻すと「追加」の位置がずれて押せない
 document.getElementById("add").addEventListener("mousedown", e => e.preventDefault());   // 押しても入力欄から外れないように
@@ -294,7 +295,7 @@ document.addEventListener("keydown", e => {
   else if (e.key === " ") { e.preventDefault(); P.paused() ? P.play() : P.pause(); }
   else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
     e.preventDefault(); const dir = e.key === "ArrowLeft" ? -1 : 1;
-    if (e.shiftKey) moveTo(P.t() + 2 * dir); else step(dir);
+    if (e.shiftKey) moveTo(P.t() + JUMP * dir); else step(dir);
   }
 });
 
