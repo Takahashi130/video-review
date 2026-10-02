@@ -54,6 +54,9 @@ li .t small { font-size:11px; color:var(--sub); margin-left:2px; }
 .steps { display:flex; gap:6px; padding:8px 16px; border-bottom:1px solid var(--line); }
 .steps button { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:8px 10px; font-size:13px; min-height:40px; cursor:pointer; white-space:nowrap; }
 .steps .write { flex:1 1 auto; background:var(--accent); color:#111; border-color:var(--accent); font-weight:700; font-size:14px; }
+#mic { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:9px 12px; font-size:17px; cursor:pointer; white-space:nowrap; }
+#mic.on { background:#d6262e; border-color:#d6262e; color:#fff; animation:pulse 1s infinite; }
+@keyframes pulse { 50% { opacity:.65; } }
 #add { background:var(--accent); color:#111; border:none; border-radius:6px; padding:10px 16px; font-weight:700; font-size:15px; cursor:pointer; white-space:nowrap; }
 @media (max-width: 1000px) { .player { position:sticky; top:0; z-index:5; border-bottom:1px solid var(--line); } .vwrap { max-height:none; } }
 @media (max-width: 600px) {
@@ -128,14 +131,17 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--accent); out
     </div>
     <div class="entry"><span class="stamp" id="stamp">--:--</span>
       <input id="box" placeholder="直したいことを書いて Enter（例：文字を大きく）" autocomplete="off" enterkeyhint="send">
+      <button id="mic" title="声で入れる（押して話す。もう一度押すと止まる）" hidden>🎤</button>
       <button id="add">追加</button></div>
     </div>
     <div class="who"><label for="name">名前</label><input id="name" placeholder="コメントに付く名前（任意）" autocomplete="off"></div>
     <div class="sections" id="secs"></div>
     <div class="keys" id="tkeys" hidden>「✎ 止めて書く」で止まって時刻が入ります → 文を書いて「追加」。止めている間は画面に指で描けます（ペン・矢印・四角・丸・文字）。動画を直接タップしても再生・停止できます。<br>
+      🎤 を押して話すと、声が文字になります（Chrome・Safari など。Brave では使えません）。<br>
       コメントはこのブラウザに自動で残ります（閉じても続きから）。一覧の時刻を押すとその場面へ。文は押すと直せます。最後に「全部コピー」→ LINE などで送ってください。</div>
     <div class="keys" id="keys">スペース：再生・停止　← →：1コマ戻る・進む（止めた状態で。YouTube なので少しずれることがあります）　Shift＋← →：2秒戻る・進む　Enter：コメント　Esc：コメントをやめて再生<br>
       止めている間は画面に描けます（ペン・矢印・四角・丸・文字。色は黄・赤・白）。描いたものはコメントと一緒に残り、一覧の時刻を押すと出ます。<br>
+      🎤 を押して話すと、声が文字になります（Chrome・Edge・Safari。Brave では使えません。声はブラウザの音声認識（Google や Apple）に送られて文字になります）。<br>
       コメントはこのブラウザに自動で残ります（閉じても続きから）。一覧の時刻を押すとその場面へ。文はクリックで直せます。</div>
   </section>
   <section class="right">
@@ -149,7 +155,7 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--accent); out
   </section>
 </main>
 <div class="toast" id="toast"></div>
-<div class="ver">動画確認ページ YouTube版 v1.4.0</div>
+<div class="ver">動画確認ページ YouTube版 v1.5.0</div>
 <script>
 // 使い方：https://<ユーザー>.github.io/video-review/?v=<YouTube の動画ID か URL>&title=<題>&fps=29.97&ch=<秒>:<区間名>,<秒>:<区間名>
 // このページには番組の中身（字幕・文字起こし）は置かない。どの動画かはリンクで渡す。コメントは見た人のブラウザにだけ残る。
@@ -212,7 +218,7 @@ const s = document.createElement("script"); s.src = "https://www.youtube.com/ifr
 
 let pinned = null;
 function pin() { P.pause(); pinned = P.t(); stamp.textContent = fmt(pinned); shown = null; inkMode(true); }
-function unpin() { box.value = ""; pinned = null; stamp.textContent = "--:--"; box.blur(); inkMode(false); P.play(); }
+function unpin() { if (listening && rec) { try { rec.abort(); } catch (e) {} }  box.value = ""; pinned = null; stamp.textContent = "--:--"; box.blur(); inkMode(false); P.play(); }
 function commit() {
   if (pinned === null) pin();
   const text = box.value.trim() || (shapes.length ? "（描き込み）" : "");
@@ -242,6 +248,35 @@ if (TOUCH) {   // 透明の板を外して、動画を直接タップできる�
   box.placeholder = "直したいことを書く";
   document.getElementById("help").textContent = "直したい所で「✎ 止めて書く」→ 文を書いて「追加」。最後に「全部コピー」→ 送ってください";
 }
+// ---- 声で入れる（ブラウザの音声認識。Chrome・Edge・Safari・スマホ。Brave は仕組みを止めているので使えない）
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const mic = document.getElementById("mic");
+const IS_BRAVE = !!(navigator.brave);
+let rec = null, listening = false, micBase = "";
+if (SR && !IS_BRAVE) mic.hidden = false;
+function micStop() { listening = false; mic.classList.remove("on"); mic.textContent = "🎤"; box.placeholder = TOUCH ? "直したいことを書く" : "直したいことを書いて Enter（例：文字を大きく）"; }
+mic.addEventListener("mousedown", e => e.preventDefault());   // 押しても入力欄の状態を変えない
+mic.onclick = () => {
+  if (listening && rec) { rec.stop(); return; }
+  if (pinned === null) pin();                                 // 止めて時刻を入れてから聞く
+  rec = new SR(); rec.lang = "ja-JP"; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+  micBase = box.value ? box.value.replace(/\s+$/, "") + " " : "";
+  rec.onresult = e => {
+    let fin = "", mid = "";
+    for (let i = 0; i < e.results.length; i++) { const r = e.results[i]; (r.isFinal ? (fin += r[0].transcript) : (mid += r[0].transcript)); }
+    box.value = (micBase + fin + mid).trim();
+  };
+  rec.onerror = e => {
+    const why = { "not-allowed": "マイクを使う許可が必要です（ブラウザの許可を確かめてください）", "service-not-allowed": "マイクを使う許可が必要です",
+                  "no-speech": "声が聞こえませんでした。もう一度 🎤", "audio-capture": "マイクが見つかりません",
+                  "network": "このブラウザでは声の入力が使えません。Chrome か Safari で開いてください" }[e.error] || ("声の入力が止まりました（" + e.error + "）");
+    toast(why);
+    if (e.error === "network" || e.error === "service-not-allowed") mic.hidden = true;
+  };
+  rec.onend = () => { micStop(); if (box.value.trim()) toast("内容を確かめて「追加」（Enter）"); };
+  try { rec.start(); listening = true; mic.classList.add("on"); mic.textContent = "● 停止"; box.placeholder = "話してください…"; }
+  catch (err) { micStop(); toast("声の入力を始められませんでした"); }
+};
 box.addEventListener("mousedown", () => { if (pinned === null) pin(); });
 box.addEventListener("input", () => { if (pinned === null) pin(); });
 box.addEventListener("keydown", e => {
