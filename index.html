@@ -75,9 +75,26 @@ li .t small { font-size:11px; color:var(--sub); margin-left:2px; }
 .tools { display:flex; gap:8px; padding:12px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
 .tools .primary { background:var(--accent); color:#111; border-color:var(--accent); font-weight:700; }
 .count { color:var(--sub); font-size:13px; padding:8px 12px 0; }
+.overall { padding:10px 12px; border-bottom:1px solid var(--line); display:flex; flex-direction:column; gap:6px; }
+.overall label { color:var(--sub); font-size:12px; }
+.overall textarea { width:100%; min-height:64px; resize:vertical; font:inherit; font-size:15px; padding:8px 10px; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; }
+.att { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+.att button, #att { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:6px 10px; font-size:14px; cursor:pointer; white-space:nowrap; }
+.thumbs { display:flex; gap:4px; flex-wrap:wrap; }
+.thumbs img { height:40px; border-radius:4px; border:1px solid var(--line); cursor:pointer; }
+
+.sent { color:#7bd88f; font-size:11px; margin-left:4px; }
+.tools .send { background:#2b6cff; color:#fff; border-color:#2b6cff; font-weight:700; }
+.sendstate { color:var(--sub); font-size:12px; padding:0 12px 6px; }
+.how { padding:8px 16px 14px; color:var(--sub); font-size:13px; line-height:1.7; }
+.how summary { cursor:pointer; color:var(--text); font-weight:700; }
+.how ul { margin:6px 0 0; padding-left:1.2em; }
+.how b { color:var(--text); font-weight:600; }
+.how li { padding:2px 0; }
+@media (max-width: 600px) { .how { padding-left:12px; padding-right:12px; } }
 ol { list-style:none; margin:0; padding:8px 0; overflow:auto; flex:1; }
-li { display:grid; grid-template-columns: 66px 1fr 24px; gap:6px; padding:8px 12px; border-bottom:1px solid var(--line); }
-li:hover { background:var(--hit); }
+#list li { display:grid; grid-template-columns: 66px 1fr 24px; gap:6px; padding:8px 12px; border-bottom:1px solid var(--line); }
+#list li:hover { background:var(--hit); }
 li .t { color:var(--accent); cursor:pointer; font-variant-numeric: tabular-nums; font-weight:700; }
 li .c { outline:none; white-space:pre-wrap; word-break:break-all; }
 li .del { background:none; border:none; color:var(--sub); cursor:pointer; font-size:16px; }
@@ -131,6 +148,7 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--accent); out
     </div>
     <div class="entry"><span class="stamp" id="stamp">--:--</span>
       <input id="box" placeholder="直したいことを書いて Enter（例：文字を大きく）" autocomplete="off" enterkeyhint="send">
+      <button id="att" title="画像を付ける（選ぶ・ドラッグ・貼り付け）">🖼</button>
       <button id="mic" title="声で入れる（押して話す。もう一度押すと止まる）" hidden>🎤</button>
       <button id="add">追加</button></div>
     </div>
@@ -143,19 +161,37 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--accent); out
       止めている間は画面に描けます（ペン・矢印・四角・丸・文字。色は黄・赤・白）。描いたものはコメントと一緒に残り、一覧の時刻を押すと出ます。<br>
       🎤 を押して話すと、声が文字になります（Chrome・Edge・Safari。Brave では使えません。声はブラウザの音声認識（Google や Apple）に送られて文字になります）。<br>
       コメントはこのブラウザに自動で残ります（閉じても続きから）。一覧の時刻を押すとその場面へ。文はクリックで直せます。</div>
+    <details class="how"><summary>伝わりやすい書き方の例</summary>
+      <ul>
+        <li>字幕の文字を直す：<b>「子守」→「子守り」</b>（今の文字 → 直した文字）</li>
+        <li>声ごと切る：<b>「なんか」音声ごとカット</b></li>
+        <li>字幕だけ消す：<b>字幕の「じゃあ」だけ消す</b>（声は残る）</li>
+        <li>長く切る：<b>「じゃあこれ伝わると」〜「バズらせてください」までカット</b>（始めと終わりの言葉）</li>
+        <li>場所を動かす：<b>この話をおまけの1番目へ</b></li>
+        <li>足す・変える：<b>ポイントを「鍛えれば変身できるところが好き」に</b></li>
+        <li>見た目：画面に矢印や丸を描いて <b>このテロップをもう少し上に</b></li>
+        <li>理由を一言：<b>（視聴者目線を読みすぎ）</b>と添えると、ほかの場面も同じ考えで直せます</li>
+        <li>決まりごと：<b>今後も</b>か<b>今回だけ</b>を書く。時刻のないことは「全体修正」へ</li>
+      </ul></details>
   </section>
   <section class="right">
     <div class="tools">
+      <button class="send" id="send" hidden>送信</button>
       <button class="primary" id="copy">全部コピー</button>
       <button id="dl">ファイルに保存</button>
       <button id="clear">全部消す</button>
     </div>
+    <div class="sendstate" id="sendstate" hidden></div>
+    <div class="overall"><label for="ov">全体修正（時刻なし。「今後も」の決まりもここへ）</label>
+      <textarea id="ov" placeholder="例：後ろの場面から素材を持ってこない／イラストは添付の画風で"></textarea>
+      <div class="att"><button id="ovatt">🖼 画像を付ける</button><span class="thumbs" id="ovthumbs"></span></div></div>
+    <input type="file" id="pick" accept="image/*" multiple hidden>
     <div class="count" id="count"></div>
     <ol id="list"></ol>
   </section>
 </main>
 <div class="toast" id="toast"></div>
-<div class="ver">動画確認ページ YouTube版 v1.6.0</div>
+<div class="ver">動画確認ページ YouTube版 v1.7.0</div>
 <script>
 // 使い方：https://<ユーザー>.github.io/video-review/?v=<YouTube の動画ID か URL>&title=<題>&fps=29.97&ch=<秒>:<区間名>,<秒>:<区間名>
 // このページには番組の中身（字幕・文字起こし）は置かない。どの動画かはリンクで渡す。コメントは見た人のブラウザにだけ残る。
@@ -221,9 +257,10 @@ function pin() { P.pause(); pinned = P.t(); stamp.textContent = fmt(pinned); sho
 function unpin() { if (listening && rec) { try { rec.abort(); } catch (e) {} }  box.value = ""; pinned = null; stamp.textContent = "--:--"; box.blur(); inkMode(false); P.play(); }
 function commit() {
   if (pinned === null) pin();
-  const text = box.value.trim() || (shapes.length ? "（描き込み）" : "");
+  const text = box.value.trim() || (shapes.length ? "（描き込み）" : "") || (pendImgs.length ? "（画像）" : "");
   if (text) {
     const it = { t: pinned, text, sec: secAt(pinned) }; if (shapes.length) it.d = shapes.map(roundShape);
+    if (pendImgs.length) { it.images = pendImgs; pendImgs = []; showPend(); }
     items.push(it); items.sort((a, b) => a.t - b.t); save(); render(); toast(fmt(pinned) + " に追加");
   }
   unpin();
@@ -320,6 +357,81 @@ vol.addEventListener("input", () => { if (ready) { player.setVolume(Number(vol.v
 vol.addEventListener("change", () => vol.blur());
 mute.onclick = () => { if (!ready) return; if (player.isMuted()) { player.unMute(); mute.textContent = "🔊"; } else { player.mute(); mute.textContent = "🔇"; } mute.blur(); };
 
+// ---- 画像（参考の絵柄やスクショ。ページで縮めてから持つ）と全体修正
+let pendImgs = [], overall = { text: "", images: [], sentText: null, sentN: 0 };
+try { overall = Object.assign(overall, JSON.parse(localStorage.getItem(KEY + ":overall") || "{}")); } catch (e) {}
+const ov = document.getElementById("ov"), pick = document.getElementById("pick");
+ov.value = overall.text || "";
+function saveOverall() { try { localStorage.setItem(KEY + ":overall", JSON.stringify(overall)); } catch (e) { toast("画像が多くて保存しきれません。送信してください"); } }
+ov.addEventListener("input", () => { overall.text = ov.value; saveOverall(); });
+async function shrink(file) {
+  const img = await createImageBitmap(file);
+  const k = Math.min(1, 1280 / Math.max(img.width, img.height));
+  const c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+  c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+  return c.toDataURL("image/jpeg", 0.8);
+}
+let pickFor = "entry";
+function thumbs(el, list, onDel) {
+  el.innerHTML = "";
+  list.forEach((u, i) => { const im = document.createElement("img"); im.src = u; im.title = "押すと外す"; im.onclick = () => onDel(i); el.append(im); });
+}
+function showOv() { thumbs(document.getElementById("ovthumbs"), overall.images, i => { overall.images.splice(i, 1); saveOverall(); showOv(); }); }
+function showPend() { const b = document.getElementById("att"); b.textContent = pendImgs.length ? "🖼" + pendImgs.length : "🖼"; }
+async function addImages(files, where) {
+  for (const f of files) {
+    if (!f.type.startsWith("image/")) continue;
+    const u = await shrink(f);
+    if (where === "overall") { overall.images.push(u); saveOverall(); showOv(); }
+    else { if (pinned === null) pin(); pendImgs.push(u); showPend(); }
+  }
+  toast("画像を付けました");
+}
+document.getElementById("att").addEventListener("mousedown", e => e.preventDefault());
+document.getElementById("att").onclick = () => { pickFor = "entry"; if (pinned === null) pin(); pick.click(); };
+document.getElementById("ovatt").onclick = () => { pickFor = "overall"; pick.click(); };
+pick.onchange = () => { addImages([...pick.files], pickFor); pick.value = ""; };
+box.addEventListener("paste", e => { const fs = [...(e.clipboardData || {}).files || []].filter(f => f.type.startsWith("image/")); if (fs.length) { e.preventDefault(); addImages(fs, "entry"); } });
+ov.addEventListener("paste", e => { const fs = [...(e.clipboardData || {}).files || []].filter(f => f.type.startsWith("image/")); if (fs.length) { e.preventDefault(); addImages(fs, "overall"); } });
+document.querySelector(".overall").addEventListener("dragover", e => e.preventDefault());
+document.querySelector(".overall").addEventListener("drop", e => { e.preventDefault(); addImages([...e.dataTransfer.files], "overall"); });
+document.querySelector(".entry").addEventListener("dragover", e => e.preventDefault());
+document.querySelector(".entry").addEventListener("drop", e => { e.preventDefault(); addImages([...e.dataTransfer.files], "entry"); });
+showOv();
+
+// ---- 送信（Google の受け取り口へ。コメントはシート、画像はドライブ。Claude が読む）
+const RECEIVER = Q.get("to") || "";   // 受け取り口の URL（Google で有効にしたら決め打ちにする）
+const sendBtn = document.getElementById("send"), sendState = document.getElementById("sendstate");
+if (RECEIVER) {
+  sendBtn.hidden = false;
+  for (const id of ["help", "tkeys"]) { const e = document.getElementById(id); e.innerHTML = e.innerHTML.replace(/「全部コピー」→ (LINE などで)?送ってください/, "「送信」を押してください（Claude に届きます）"); }
+} else {   // 受け取り口が無い時は画像を届けられないので、画像のボタンは出さない
+  document.getElementById("att").hidden = true; document.getElementById("ovatt").parentElement.hidden = true;
+}
+function stateText() {
+  const left = items.filter(it => !it.sent).length + ((overall.text || overall.images.length) && (overall.text !== overall.sentText || overall.images.length !== overall.sentN) ? 1 : 0);
+  sendState.hidden = !RECEIVER; sendState.textContent = left ? "まだ送っていない：" + left + " 件" : "全部送りました ✓";
+}
+sendBtn.onclick = async () => {
+  const todo = items.filter(it => !it.sent);
+  const ovNew = (overall.text || overall.images.length) && (overall.text !== overall.sentText || overall.images.length !== overall.sentN);
+  if (!todo.length && !ovNew) { toast("送るものはありません"); return; }
+  sendBtn.disabled = true; sendBtn.textContent = "送信中…";
+  const body = { video: VID, title: TITLE, name: nameEl.value.trim(),
+    overall: ovNew ? { text: overall.text, images: overall.images } : null,
+    items: todo.map(it => ({ t: Math.round(it.t * 100) / 100, tc: fmt(it.t), sec: it.sec || "", text: it.text,
+                             ink: it.d ? "@" + it.t.toFixed(2) + " " + inkDesc(it.d) : "", images: it.images || [] })) };
+  try {
+    const r = await fetch(RECEIVER, { method: "POST", body: JSON.stringify(body) });
+    const j = await r.json();
+    if (!j.ok) throw new Error("ng");
+    todo.forEach(it => it.sent = true); save();
+    if (ovNew) { overall.sentText = overall.text; overall.sentN = overall.images.length; saveOverall(); }
+    render(); toast("送りました（" + (todo.length + (ovNew ? 1 : 0)) + " 件）");
+  } catch (e) { toast("送れませんでした。電波を確かめて、もう一度"); }
+  sendBtn.disabled = false; sendBtn.textContent = "送信";
+};
+
 // ---- コメント一覧
 function render() {
   list.innerHTML = "";
@@ -328,18 +440,23 @@ function render() {
     const li = document.createElement("li");
     const t = document.createElement("span"); t.className = "t"; t.textContent = fmt(it.t);
     if (it.d) { const m = document.createElement("small"); m.textContent = "✎"; m.title = "描き込みあり"; t.append(m); }
+    if (it.images && it.images.length) { const m = document.createElement("small"); m.textContent = "🖼" + it.images.length; m.title = "画像あり"; t.append(m); }
+    if (it.sent) { const m = document.createElement("span"); m.className = "sent"; m.textContent = "✓"; m.title = "送信済み"; t.append(m); }
     t.onclick = () => { if (pinned !== null) unpin(); P.seek(it.t); P.pause(); setTimeout(() => { P.pause(); shown = it.d || null; drawInk(); }, 300); };
     const c = document.createElement("span"); c.className = "c"; c.contentEditable = "true"; c.textContent = it.text;
-    c.onblur = () => { it.text = c.textContent.trim(); save(); };
+    c.onblur = () => { const nt = c.textContent.trim(); if (nt !== it.text) { it.text = nt; it.sent = false; save(); stateText(); } };
     const del = document.createElement("button"); del.className = "del"; del.textContent = "×"; del.title = "消す";
     del.onclick = () => { items.splice(i, 1); save(); render(); };
     li.append(t, c, del); list.append(li);
   });
+  stateText();
 }
 function asText() {
   const who = nameEl.value.trim();
   const head = "【" + (TITLE || VID) + "】確認コメント " + items.length + "件" + (who ? "（" + who + "）" : "");
-  return [head].concat(items.map(it => fmt(it.t) + " " + it.text + (it.sec ? "　（区間：" + it.sec + "）" : "") + (it.d ? "\n　✎ @" + it.t.toFixed(2) + " " + inkDesc(it.d) : ""))).join("\n");
+  const ovt = (overall.text || "").trim();
+  const top = ovt || overall.images.length ? ["【全体修正】", ovt + (overall.images.length ? "（画像 " + overall.images.length + " 枚。送信で届きます）" : ""), "ーーーーー"] : [];
+  return [head].concat(top, items.map(it => fmt(it.t) + " " + it.text + (it.sec ? "　（区間：" + it.sec + "）" : "") + (it.images && it.images.length ? "　（画像 " + it.images.length + " 枚）" : "") + (it.d ? "\n　✎ @" + it.t.toFixed(2) + " " + inkDesc(it.d) : ""))).join("\n");
 }
 document.getElementById("copy").onclick = async () => {
   const txt = asText();
