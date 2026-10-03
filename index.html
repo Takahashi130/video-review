@@ -2,199 +2,506 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="robots" content="noindex, nofollow">
-<title>動画確認ページ</title>
+<meta name="theme-color" content="#FFFFFF">
+<title>Vcheck 動画確認</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&display=swap" rel="stylesheet">
 <style>
-:root { --bg:#111214; --panel:#1b1c1f; --line:#2c2e33; --text:#ececec; --sub:#9a9ca3; --accent:#f2d33a; --hit:#2a2c31; --err:#ff6b6b; color-scheme: dark; }
-* { box-sizing: border-box; }
-[hidden] { display:none !important; }
-html, body { margin:0; background:var(--bg); color:var(--text); font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif; font-size:15px; }
-header { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 12px; padding:12px 16px; border-bottom:1px solid var(--line); }
-header h1 { font-size:16px; margin:0; font-weight:700; }
-header .help { color:var(--sub); font-size:13px; }
-main { display:grid; grid-template-columns: minmax(0, 1fr) 380px; min-height:calc(100vh - 49px); }
-#ink { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; touch-action:none; }
-#ink.on { pointer-events:auto; cursor:crosshair; }
-#inkText { position:absolute; z-index:3; font-size:16px; padding:4px 8px; background:rgba(0,0,0,.75); color:#fff; border:1px solid var(--accent); border-radius:4px; width:min(260px, 60%); outline:none; }
-.draw { display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:8px 16px; border-bottom:1px solid var(--line); }
-.draw button { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:6px 10px; font-size:13px; min-height:34px; cursor:pointer; white-space:nowrap; }
-.draw button b { font-weight:400; } .draw button i { font-style:normal; }
-.draw button.on { border-color:var(--accent); color:var(--accent); }
-.draw .dot { width:28px; height:28px; min-height:28px; padding:0; border-radius:50%; background:var(--c); border:2px solid var(--line); }
-.draw .dot.on { border-color:var(--bg); box-shadow:0 0 0 2px var(--c); }
-.draw .lbl { color:var(--sub); font-size:12px; }
-.draw .sep { width:1px; height:22px; background:var(--line); }
-li .t small { font-size:11px; color:var(--sub); margin-left:2px; }
-@media (max-width: 1000px) { main { grid-template-columns: 1fr; } }
-.left { display:flex; flex-direction:column; min-width:0; border-right:1px solid var(--line); }
-.vwrap { position:relative; width:100%; aspect-ratio:16/9; max-height:64vh; background:#000; }
-.vwrap #yt, .vwrap iframe { position:absolute; inset:0; width:100%; height:100%; }
-.shield { position:absolute; inset:0; cursor:pointer; }            /* 動画をクリックしても YouTube 側にキーを取られないように */
-.msg { position:absolute; inset:0; display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center; text-align:center; padding:16px; color:var(--sub); }
-.msg input { width:min(520px, 100%); font-size:15px; padding:10px 12px; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; }
-.msg button { background:var(--accent); color:#111; border:none; border-radius:6px; padding:10px 18px; font-weight:700; cursor:pointer; }
-.bar { display:flex; align-items:center; gap:10px; padding:8px 16px; background:#000; border-bottom:1px solid var(--line); }
-.bar button { background:none; border:none; color:var(--text); font-size:18px; cursor:pointer; width:32px; }
-.bar .tc { font-variant-numeric: tabular-nums; font-size:14px; min-width:120px; }
-.bar #seek { flex:1; accent-color: var(--accent); min-width:0; }
-.bar #vol { width:80px; accent-color: var(--accent); }
-.entry { display:flex; gap:8px; align-items:center; padding:12px 16px; border-bottom:1px solid var(--line); }
-.stamp { font-variant-numeric: tabular-nums; color:var(--accent); min-width:64px; font-weight:700; }
-#box { flex:1; min-width:0; font-size:16px; padding:10px 12px; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; outline:none; }
-#box:focus { border-color:var(--accent); }
-.who { display:flex; gap:8px; align-items:center; padding:10px 16px; color:var(--sub); font-size:13px; border-bottom:1px solid var(--line); }
-.who input { flex:1; max-width:240px; font-size:14px; padding:6px 10px; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; }
-.sections { display:flex; flex-wrap:wrap; gap:6px; padding:12px 16px; }
-.sections:empty { display:none; }
-.sections button, .tools button { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:6px 10px; font-size:13px; cursor:pointer; }
-.sections button:hover, .tools button:hover { border-color:var(--accent); }
-.keys { color:var(--sub); font-size:12px; padding:8px 16px 12px; line-height:1.7; }
-.player { background:var(--bg); }
-.steps { display:flex; gap:6px; padding:8px 16px; border-bottom:1px solid var(--line); }
-.steps button { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:8px 10px; font-size:13px; min-height:40px; cursor:pointer; white-space:nowrap; }
-.steps .write { flex:1 1 auto; background:var(--accent); color:#111; border-color:var(--accent); font-weight:700; font-size:14px; }
-#mic { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:9px 12px; font-size:17px; cursor:pointer; white-space:nowrap; }
-#mic.on { background:#d6262e; border-color:#d6262e; color:#fff; animation:pulse 1s infinite; }
-@keyframes pulse { 50% { opacity:.65; } }
-#add { background:var(--accent); color:#111; border:none; border-radius:6px; padding:10px 16px; font-weight:700; font-size:15px; cursor:pointer; white-space:nowrap; }
-@media (max-width: 1000px) { .player { position:sticky; top:0; z-index:5; border-bottom:1px solid var(--line); } .vwrap { max-height:none; } }
-@media (max-width: 600px) {
-  header { padding:10px 12px; } header .help { font-size:12px; }
-  .bar, .steps, .entry, .who, .sections { padding-left:12px; padding-right:12px; }
-  .bar #vol { display:none; } .bar .tc { min-width:0; font-size:13px; }
-  .steps { gap:4px; } .steps button { padding:8px 7px; font-size:12px; } .steps .write { font-size:13px; }
-  .entry { padding-top:8px; padding-bottom:8px; } .stamp { min-width:40px; font-size:13px; }
-  .who input { font-size:16px; max-width:none; }
-  .draw { gap:4px; padding:6px 12px; } .draw .lbl, .draw button i { display:none; } .draw button { padding:4px 8px; min-height:32px; font-size:14px; }
-  .draw .dot { width:26px; height:26px; min-height:26px; } .draw .sep { display:none; }
-  body.typing .steps, body.typing .draw { display:none; }
-  body .ver { position:static; display:block; text-align:right; padding:8px 12px 16px; }
+/* Vcheck（v1.9.0）：白を土台に、色はティールだけ（動画配信サイトのような落ち着いた作り）。
+   ティール #029AAA はロゴ・線・飾り、文字に使う時は #027A87（白の上 5.08:1）、淡いティールの上は #01646F。
+   イエロー #E5E647 は選んだ状態・時刻の強調だけ。主なボタンはティール → 濃紺 #06304F のグラデーション。 */
+:root {
+  --teal:#029AAA; --teal-ink:#027A87; --teal-deep:#01646F; --navy:#06304F; --yellow:#E5E647;
+  --ink:#1B1F24; --sub:#5B6670; --line:#E3E7EA; --bg:#FFFFFF; --bg2:#F3F5F6; --tint:#E6F5F6; --ytint:#F8F8C8;
+  --danger:#B42318;
+  --grad-btn:linear-gradient(135deg, #03A3B4 0%, #029AAA 50%, #028F9E 100%);
+  --grad-done:linear-gradient(135deg, #F2F36A 0%, #E5E647 55%, #D9DA35 100%);
+  --grad-brand:linear-gradient(100deg, #5CC0C9 0%, #A1D488 52%, #E5E647 100%);
+  --vvh:100vh; --headH:64px;
+  color-scheme: light;
 }
-.right { display:flex; flex-direction:column; min-height:0; }
-.tools { display:flex; gap:8px; padding:12px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
-.tools .primary { background:var(--accent); color:#111; border-color:var(--accent); font-weight:700; }
-.count { color:var(--sub); font-size:13px; padding:8px 12px 0; }
-.overall { padding:10px 12px; border-bottom:1px solid var(--line); display:flex; flex-direction:column; gap:6px; }
-.overall label { color:var(--sub); font-size:12px; }
-.overall textarea { width:100%; min-height:64px; resize:vertical; font:inherit; font-size:15px; padding:8px 10px; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; }
-.att { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
-.att button, #att { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:6px; padding:6px 10px; font-size:14px; cursor:pointer; white-space:nowrap; }
-.thumbs { display:flex; gap:4px; flex-wrap:wrap; }
-.thumbs img { height:40px; border-radius:4px; border:1px solid var(--line); cursor:pointer; }
+* { box-sizing:border-box; }
+[hidden] { display:none !important; }
+html { background:var(--bg); -webkit-text-size-adjust:100%; }
+body { margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif; font-size:15px; line-height:1.55; }
+button, input, textarea { font:inherit; color:inherit; }
+button { cursor:pointer; }
+button:disabled { cursor:not-allowed; opacity:.45; }
+:focus-visible { outline:3px solid var(--teal-ink); outline-offset:2px; }
+svg.i { width:22px; height:22px; flex:none; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 
-.sent { color:#7bd88f; font-size:11px; margin-left:4px; }
-.tools .send { background:#2b6cff; color:#fff; border-color:#2b6cff; font-weight:700; }
-.sendstate { color:var(--sub); font-size:12px; padding:0 12px 6px; }
-.how { padding:8px 16px 14px; color:var(--sub); font-size:13px; line-height:1.7; }
-.how summary { cursor:pointer; color:var(--text); font-weight:700; }
-.how ul { margin:6px 0 0; padding-left:1.2em; }
-.how b { color:var(--text); font-weight:600; }
-.how li { padding:2px 0; }
-@media (max-width: 600px) { .how { padding-left:12px; padding-right:12px; } }
-ol { list-style:none; margin:0; padding:8px 0; overflow:auto; flex:1; }
-#list li { display:grid; grid-template-columns: 66px 1fr 24px; gap:6px; padding:8px 12px; border-bottom:1px solid var(--line); }
-#list li:hover { background:var(--hit); }
-li .t { color:var(--accent); cursor:pointer; font-variant-numeric: tabular-nums; font-weight:700; }
-li .c { outline:none; white-space:pre-wrap; word-break:break-all; }
-li .del { background:none; border:none; color:var(--sub); cursor:pointer; font-size:16px; }
-li .del:hover { color:var(--err); }
-.toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--accent); color:#111; padding:8px 16px; border-radius:6px; font-weight:700; opacity:0; transition:opacity .2s; pointer-events:none; }
+/* ヘッダー：左にメニューとロゴ、真ん中にリンク欄、右に名前 */
+.top { position:sticky; top:0; z-index:30; height:var(--headH); display:flex; align-items:center; gap:12px; padding:0 16px; padding-top:env(safe-area-inset-top, 0px);
+  background:rgba(255,255,255,.96); backdrop-filter:saturate(1.4) blur(8px); border-bottom:1px solid var(--line); }
+.iconbtn { width:44px; height:44px; display:inline-grid; place-items:center; border:none; background:none; border-radius:50%; color:var(--ink); }
+.iconbtn:hover { background:var(--bg2); }
+.logo { display:flex; align-items:baseline; gap:6px; text-decoration:none; color:var(--teal); flex:none; }
+.logo b { font-family:"Nunito","Hiragino Sans",sans-serif; font-weight:900; font-size:30px; letter-spacing:-.02em; line-height:1; }
+.logo b i { font-style:normal; position:relative; }
+.logo b i::after { content:""; position:absolute; right:-3px; top:-3px; width:9px; height:9px; border-radius:50%; background:var(--yellow); box-shadow:0 0 0 2px #fff; }
+.logo small { font-size:11px; font-weight:700; color:var(--sub); letter-spacing:.06em; }
+.search { flex:1; max-width:520px; margin:0 auto; display:flex; align-items:center; gap:6px; background:var(--bg2); border-radius:999px; padding:0 6px 0 14px; height:44px; color:var(--sub); }
+.search input { flex:1; min-width:0; border:none; background:none; outline:none; font-size:15px; color:var(--ink); }
+.search button { border:none; background:#fff; color:var(--teal-ink); font-weight:700; border-radius:999px; height:34px; padding:0 14px; }
+.me { margin-left:auto; display:flex; align-items:center; gap:8px; border:none; background:none; border-radius:999px; padding:4px 10px 4px 4px; min-height:44px; flex:none; font-weight:700; font-size:14px; }
+.me:hover { background:var(--bg2); }
+.avatar { width:32px; height:32px; border-radius:50%; display:grid; place-items:center; background:var(--teal-ink); color:#fff; font-size:15px; font-weight:800; }
+
+/* 3列：左のメニュー・真ん中の動画・右のコメント */
+.wrap { display:grid; grid-template-columns:220px minmax(0,1fr) 400px; gap:24px; max-width:1720px; margin:0 auto; padding:0 24px 24px 0; align-items:start; }
+.side { position:sticky; top:var(--headH); height:calc(100vh - var(--headH)); overflow:auto; border-right:1px solid var(--line); padding:16px 12px; background:#fff; }
+.side a, .side button.nav { display:flex; align-items:center; gap:14px; min-height:48px; padding:0 14px; border-radius:10px; color:var(--ink); text-decoration:none; font-weight:700; font-size:15px; border:none; background:none; width:100%; text-align:left; }
+.side a:hover, .side button.nav:hover { background:var(--bg2); }
+.side a.on { background:var(--tint); color:var(--teal-deep); }
+.side .cap { font-size:12px; color:var(--sub); font-weight:700; margin:18px 14px 6px; letter-spacing:.06em; }
+.side hr { border:none; border-top:1px solid var(--line); margin:12px 6px; }
+.side .secbtn { display:block; width:100%; text-align:left; border:none; background:none; min-height:40px; padding:0 14px; border-radius:8px; font-weight:700; font-size:14px; }
+.side .secbtn:hover { background:var(--bg2); }
+.side .secbtn span { color:var(--sub); font-weight:600; margin-left:6px; font-variant-numeric:tabular-nums; }
+.main { min-width:0; padding-top:16px; display:flex; flex-direction:column; gap:16px; }
+.aside { min-width:0; padding-top:16px; display:flex; flex-direction:column; gap:16px; }
+.scrim { position:fixed; inset:0; background:rgba(6,48,79,.35); z-index:39; }
+
+/* プレーヤー */
+.player { background:#000; }
+.vwrap { position:relative; width:100%; aspect-ratio:16/9; max-height:68vh; background:#000; }
+.vwrap #yt, .vwrap iframe { position:absolute; inset:0; width:100%; height:100%; }
+.shield { position:absolute; inset:0; cursor:pointer; }
+#ink { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; touch-action:none; z-index:2; }
+#ink.on { pointer-events:auto; cursor:crosshair; }
+#inkText { position:absolute; z-index:3; font-size:16px; padding:6px 8px; background:rgba(6,48,79,.9); color:#fff; border:2px solid var(--yellow); border-radius:6px; width:min(260px, 60%); outline:none; }
+.vstate { position:absolute; inset:0; z-index:4; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:14px; text-align:center; background:rgba(6,48,79,.86); color:#fff; font-size:14px; }
+.vstate p { margin:0; max-width:34em; }
+.vstate .row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+.vstate .btn { background:#fff; color:var(--navy); border:none; }
+.vstate a.btn { text-decoration:none; }
+/* YouTube へのボタン：YouTube の色（赤い再生マーク #FF0000・黒い文字 #0F0F0F） */
+.btn.yt { background:#fff; color:#0F0F0F; border-color:#E3E7EA; gap:8px; letter-spacing:-.01em; }
+.btn.yt:hover { background:#F2F2F2; border-color:#D9D9D9; }
+.btn.yt .ytmark { width:28px; height:20px; flex:none; }
+.vstate .btn.yt { color:#0F0F0F; }
+.spin { width:28px; height:28px; border-radius:50%; border:3px solid rgba(255,255,255,.3); border-top-color:var(--yellow); animation:spin 1s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.msg { position:absolute; inset:0; z-index:5; display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center; padding:16px; background:var(--bg2); text-align:center; }
+.msg input { width:min(520px, 100%); font-size:16px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+.bar { background:#111418; color:#fff; padding:2px 8px 4px; }
+.brow { display:flex; align-items:center; gap:2px; }
+.brow .grow { flex:1; }
+.bar .ib { background:none; border:none; color:#fff; width:44px; height:44px; display:grid; place-items:center; border-radius:50%; flex:none; }
+.bar .ib:hover { background:rgba(255,255,255,.12); }
+.bar .ib svg.i { width:26px; height:26px; }
+.bar .ib.play svg.i { width:28px; height:28px; }
+.bar .tc { font-variant-numeric:tabular-nums; font-size:13px; white-space:nowrap; flex:none; padding:0 6px; color:#E6E8EA; }
+/* 再生バー・音量：太い線（再生した所はティール）と丸いつまみ */
+.rng { -webkit-appearance:none; appearance:none; background:transparent; height:28px; margin:0; cursor:pointer; --p:0%; }
+.rng::-webkit-slider-runnable-track { height:4px; border-radius:2px; background:linear-gradient(to right, var(--teal) var(--p), #4A5056 var(--p)); }
+.rng::-moz-range-track { height:4px; border-radius:2px; background:#4A5056; }
+.rng::-moz-range-progress { height:4px; border-radius:2px; background:var(--teal); }
+.rng::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; margin-top:-6px; border-radius:50%; background:var(--teal); border:2px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.2); }
+.rng::-moz-range-thumb { width:13px; height:13px; border-radius:50%; background:var(--teal); border:2px solid #fff; }
+.rng:focus-visible { outline:2px solid var(--yellow); outline-offset:2px; }
+.bar #seek { display:block; width:100%; height:28px; }
+.bar #seek::-webkit-slider-runnable-track { height:5px; }
+.bar #seek::-webkit-slider-thumb { width:18px; height:18px; margin-top:-6.5px; }
+.bar .vol { width:96px; }
+.controls { padding:10px; background:var(--bg2); }
+
+/* ボタン */
+.btn svg.i { width:20px; height:20px; }
+a.btn { text-decoration:none; }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:44px; min-width:44px; padding:8px 16px; border-radius:999px;
+  border:1.5px solid var(--line); background:#fff; color:var(--ink); font-weight:700; font-size:14px; white-space:nowrap; }
+.btn:hover { border-color:#C9D1D6; }
+.btn.primary { background:var(--grad-btn); color:#fff; border-color:transparent; font-size:19px; font-weight:800; letter-spacing:.01em; box-shadow:0 2px 8px rgba(2,154,170,.28); }
+.btn.primary:hover { filter:brightness(1.04); }
+/* レビュー完了：いちばん目立たせる（イエロー × 濃紺の文字 9〜11:1） */
+.btn.done { background:var(--grad-done); color:var(--navy); border:1.5px solid #B9BA1F; font-size:18px; font-weight:800; box-shadow:0 3px 10px rgba(150,150,20,.35); }
+.btn.done:hover { filter:brightness(1.03); }
+#toReturnIcon { display:inline-grid; place-items:center; }
+.btn.done svg.i { width:22px; height:22px; transform:translateY(1px); }   /* 紙飛行機は右上が重いので 1px 下げて見た目の真ん中に */
+.btn.done .cnt { background:var(--navy); color:#fff; }
+.btn.line { border-color:var(--teal-ink); color:var(--teal-ink); }
+.btn.big { font-size:16px; min-height:48px; }
+.btn.primary, .btn.primary.big { font-size:19px; }   /* 明るいティールの上の白い文字は大きく（3:1 の基準） */
+.btn.done.big { font-size:18px; }
+.btn.quiet { color:var(--sub); font-weight:600; }
+.btn.danger { border-color:#E7B4AE; color:var(--danger); }
+.btn.on { background:var(--yellow); border-color:var(--navy); color:var(--navy); }
+.controls #write { width:100%; }
+.cnt { display:inline-grid; place-items:center; min-width:22px; height:22px; padding:0 6px; border-radius:999px; background:var(--yellow); color:var(--navy); font-size:12px; font-weight:800; }
+
+/* 動画の下の題（配信サイトの番組名・題・情報・丸いボタン） */
+.info { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 16px; align-items:start; padding:0 4px; }
+.info .prog { font-size:13px; font-weight:800; margin:0 0 2px; }
+.info h1 { font-size:22px; font-weight:800; margin:0; line-height:1.4; overflow-wrap:anywhere; text-wrap:balance; }
+.info .meta { color:var(--sub); font-size:13px; margin:6px 0 0; font-variant-numeric:tabular-nums; display:flex; flex-wrap:wrap; gap:2px 14px; }
+.info .meta span { white-space:nowrap; }
+.acts3 { display:flex; gap:14px; }
+.act { display:flex; flex-direction:column; align-items:center; gap:4px; border:none; background:none; color:var(--sub); font-size:11px; font-weight:700; min-width:48px; padding:0; }
+.act span.c { width:44px; height:44px; border-radius:50%; background:var(--bg2); display:grid; place-items:center; color:var(--ink); }
+.act:hover span.c { background:#E9EDEF; }
+.flow { display:flex; flex-wrap:wrap; gap:6px; margin:0; padding:0; list-style:none; font-size:13px; font-weight:700; }
+.flow li { display:flex; align-items:center; gap:6px; border:1px solid var(--line); border-radius:999px; padding:3px 12px 3px 4px; }
+.flow b { display:inline-grid; place-items:center; width:20px; height:20px; border-radius:50%; background:var(--teal-ink); color:#fff; font-size:12px; }
+.btnrow { grid-column:1 / -1; display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+
+/* カード（白・細い線） */
+.card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px; min-width:0; }
+.card h2 { font-size:17px; margin:0 0 12px; font-weight:800; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.composer .when { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px; font-size:13px; color:var(--sub); }
+.stamp { white-space:nowrap; display:inline-flex; align-items:center; min-height:32px; padding:2px 12px; border-radius:999px; background:var(--bg2); color:var(--sub); font-weight:800; font-size:16px; font-variant-numeric:tabular-nums; border:1.5px dashed #CDD5DA; }
+.stamp.set { background:var(--yellow); color:var(--navy); border:1.5px solid var(--navy); }
+.stamp.mini { display:none; min-height:44px; font-size:15px; margin-right:auto; }
+.cbox { border:1.5px solid var(--line); border-radius:16px; background:#fff; padding:10px 10px 8px 14px; }
+.cbox:focus-within { border-color:var(--teal-ink); box-shadow:0 0 0 3px rgba(2,154,170,.14); }
+#box { width:100%; min-height:72px; max-height:180px; resize:none; font-size:16px; padding:4px 2px; border:none; background:transparent; outline:none; display:block; }
+.cbar { display:flex; align-items:center; gap:4px; margin-top:4px; }
+.cbar .grow { flex:1; }
+.ic { position:relative; width:44px; height:44px; display:inline-grid; place-items:center; border:none; background:none; border-radius:10px; color:var(--sub); }
+.ic:hover { background:var(--bg2); color:var(--ink); }
+.ic .dotn { position:absolute; top:4px; right:2px; min-width:18px; height:18px; padding:0 5px; border-radius:999px; background:var(--teal-ink); color:#fff; font-size:11px; font-weight:800; display:grid; place-items:center; }
+.cbar #add { min-width:84px; min-height:44px; border-radius:12px; padding:6px 14px; }
+.crow { display:flex; align-items:center; gap:8px; margin-top:8px; flex-wrap:wrap; }
+
+.hint { font-size:13px; color:var(--sub); margin:8px 0 0; }
+.hint.warn { color:var(--navy); background:var(--ytint); border-radius:8px; padding:6px 10px; }
+#mic.on { background:#C0262D; color:#fff; animation:pulse 1s infinite; }
+@keyframes pulse { 50% { opacity:.7; } }
+details > summary { cursor:pointer; font-weight:700; min-height:44px; display:flex; align-items:center; gap:8px; list-style:none; }
+details > summary::-webkit-details-marker { display:none; }
+details > summary::before { content:"▸"; color:var(--teal-ink); transition:transform .15s; }
+details[open] > summary::before { transform:rotate(90deg); }
+.how ul { margin:4px 0 0; padding-left:1.2em; font-size:14px; color:var(--sub); }
+.how li { padding:2px 0; } .how b { color:var(--ink); }
+.more .grp { border-top:1px solid var(--line); padding:10px 0 2px; }
+.more .grp h3 { font-size:13px; margin:0 0 8px; color:var(--sub); }
+.more .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.draw .dot { width:44px; height:44px; border-radius:50%; padding:0; border:3px solid #fff; box-shadow:0 0 0 1.5px var(--line); background:var(--c); }
+.draw .dot.on { box-shadow:0 0 0 3px var(--navy); }
+.keys { font-size:13px; color:var(--sub); margin:0; }
+.keys kbd { font-family:inherit; font-size:12px; border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:0 5px; background:#fff; color:var(--ink); }
+
+/* 右：返す（配信サイトの広告枠の位置）・絞り込みの札・コメント一覧（おすすめ一覧の形） */
+.ret { padding:0; overflow:hidden; background:#fff; }
+.ret h2 { margin:0 0 12px; }
+.sendrow .note { margin:-2px 0 6px; font-size:13px; color:var(--sub); line-height:1.5; }
+.namefield { margin:10px 0 0; max-width:420px; }
+.ret .band { padding:14px 16px 12px; background:var(--bg2); border-bottom:1px solid var(--line); color:var(--ink); }
+.ret .band h2 { margin:0; font-size:17px; }
+.ret .band p { margin:2px 0 0; font-size:13px; color:var(--sub); }
+.ret .body { background:#fff; padding:14px 16px 16px; }
+.field { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; font-size:13px; color:var(--sub); }
+.field input { font-size:16px; padding:10px 12px; border:1.5px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); min-height:44px; }
+.sendrow { display:flex; flex-direction:column; gap:8px; }
+.sendrow .btn { width:100%; }
+.state { font-size:13px; font-weight:700; border-radius:10px; padding:8px 10px; margin:10px 0 0; background:var(--bg2); color:var(--ink); }
+.state.unsent { background:var(--ytint); color:var(--navy); }
+.state.done { background:var(--tint); color:var(--teal-deep); }
+.result { font-size:14px; font-weight:700; border-radius:10px; padding:8px 10px; margin:8px 0 0; }
+.result.ok { background:var(--tint); color:var(--teal-deep); }
+.result.ng { background:#FDECEA; color:var(--danger); }
+#copyBox, .overall textarea { width:100%; min-height:76px; resize:vertical; font-size:16px; padding:10px 12px; border:1.5px solid var(--line); border-radius:10px; background:#fff; margin-top:8px; }
+.others { margin-top:6px; } .others summary { font-size:14px; color:var(--sub); }
+.chips { display:flex; flex-wrap:wrap; gap:6px; }
+.chip { display:inline-flex; align-items:center; gap:4px; min-height:36px; padding:0 12px; border-radius:6px; border:1px solid var(--line); background:#fff; font-size:13px; font-weight:700; color:var(--ink); }
+.chip[aria-pressed="true"] { background:var(--tint); border-color:var(--teal-ink); color:var(--teal-deep); }
+.listhead { display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin:4px 0 0; }
+.listhead h2 { font-size:18px; margin:0; font-weight:800; }
+.listhead span { color:var(--sub); font-size:13px; font-weight:700; }
+#list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+#list li { display:grid; grid-template-columns:112px minmax(0,1fr); gap:4px 12px; padding:10px 0; border-bottom:1px solid var(--line); }
+#list li:last-child { border-bottom:none; }
+.tbtn { grid-row:span 3; align-self:start; height:64px; border-radius:8px; border:none; background:linear-gradient(135deg, #0F1A22, #06304F); color:#fff; font-weight:800; font-size:18px; font-variant-numeric:tabular-nums; position:relative; }
+.tbtn::after { content:"▶"; position:absolute; left:8px; bottom:6px; font-size:10px; color:var(--yellow); }
+.ctext { white-space:pre-wrap; overflow-wrap:anywhere; font-weight:700; font-size:14px; line-height:1.45; }
+.badges { display:flex; flex-wrap:wrap; gap:6px; font-size:12px; color:var(--sub); }
+.badge { border-radius:4px; padding:0 6px; background:var(--bg2); color:var(--sub); font-weight:600; }
+.badge.ok { background:var(--tint); color:var(--teal-deep); }
+.badge.wait { background:var(--ytint); color:var(--navy); }
+.acts { display:flex; gap:6px; }
+.acts .btn { min-height:36px; padding:4px 12px; font-size:13px; }
+#list li .edit { grid-column:2; }
+#list li .edit textarea { width:100%; min-height:72px; font-size:16px; padding:8px 10px; border:1.5px solid var(--teal-ink); border-radius:10px; resize:vertical; }
+.empty { color:var(--sub); font-size:14px; margin:6px 0 0; }
+.overall .sub { font-size:13px; color:var(--sub); margin:-6px 0 0; }
+.fb summary { font-size:14px; color:var(--sub); min-height:40px; }
+.fb .sub { font-size:13px; color:var(--sub); margin:4px 0 0; }
+.fb textarea { width:100%; min-height:76px; resize:vertical; font-size:16px; padding:10px 12px; border:1.5px solid var(--line); border-radius:10px; background:#fff; margin-top:8px; }
+.thumbs { display:flex; gap:6px; flex-wrap:wrap; }
+.thumbs img { height:44px; border-radius:6px; border:1px solid var(--line); cursor:pointer; }
+
+.toast { position:fixed; left:50%; bottom:calc(16px + env(safe-area-inset-bottom, 0px)); transform:translateX(-50%); max-width:calc(100% - 32px); background:var(--navy); color:#fff;
+  padding:10px 16px; border-radius:12px; font-weight:700; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; z-index:60; box-shadow:0 6px 20px rgba(6,48,79,.3); }
 .toast.show { opacity:1; }
-.ver { position:fixed; right:10px; bottom:6px; color:var(--sub); font-size:11px; opacity:.6; }
-button:focus-visible, input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.ver { text-align:right; color:var(--sub); font-size:11px; padding:0 16px 16px; }
+
+/* 1200px 未満：左のメニューは「≡」で開く */
+@media (max-width: 1199px) {
+  .wrap { grid-template-columns:minmax(0,1fr) 380px; padding-left:24px; }
+  .side { position:fixed; left:0; top:0; bottom:0; height:auto; width:min(280px, 82vw); z-index:40; transform:translateX(-102%); transition:transform .2s; box-shadow:0 0 30px rgba(0,0,0,.15); padding-top:calc(16px + env(safe-area-inset-top, 0px)); }
+  body.menu .side { transform:none; }
+}
+@media (min-width: 1200px) { #menuBtn { display:none; } .scrim { display:none; } }
+/* 1000px 以下：1列（スマホ）。動画と操作はページの上に貼りつく */
+@media (max-width: 1000px) {
+  :root { --headH:56px; }
+  .wrap { display:flex; flex-direction:column; align-items:stretch; gap:12px; padding:0 0 16px; }
+  .main, .aside { display:contents; }
+  .main > *:not(.player), .aside > * { margin:0 12px; }
+  .player { position:sticky; top:0; z-index:20; order:0; }
+  .top { position:relative; }
+  .search { display:none; }
+  .info { padding:4px 0 0; }
+  .info h1 { font-size:18px; }
+  .vwrap { max-height:none; }
+}
+@media (max-width: 600px) {
+  .top { padding:0 8px; gap:4px; }
+  .logo small { display:none; }
+  .me .nm { display:none; }
+  .bar .vol { display:none; }
+  .acts3 { gap:6px; }
+  .info { grid-template-columns:1fr; }
+  .info .acts3 { order:2; justify-content:flex-start; gap:18px; }
+  .btnrow { order:4; }
+  .btnrow .btn { flex:1; }
+  #list li { grid-template-columns:88px minmax(0,1fr); }
+  .tbtn { height:54px; font-size:16px; }
+  /* キーボードを出している間：動画を小さくして、入力欄と「追加」が見える高さにする */
+  body.typing .bar #seek, body.typing .bar .tc, body.typing .composer h2, body.typing .composer .when, body.typing #chint, body.typing .composer .how, body.typing #secs { display:none; }
+  body.typing .info { display:none; }
+  body.typing .vwrap { aspect-ratio:auto; height:min(56.25vw, calc(var(--vvh) * .22)); }
+  body.typing .bar { padding-top:0; padding-bottom:0; }
+  body.typing #box { min-height:56px; }
+  body.typing .controls { padding-top:4px; padding-bottom:4px; }
+  body.typing #write { min-height:44px; }
+  body.typing .card.composer { padding:10px 12px; }
+  body.typing .cbox { padding-top:6px; padding-bottom:4px; }
+  body.typing .stamp.mini { display:inline-flex; }
+}
+@media (min-width: 1001px) {
+  #list { max-height:56vh; overflow:auto; padding-right:4px; }
+}
 </style>
 </head>
 <body>
-<header><h1 id="ttl">動画確認ページ</h1><span class="help" id="help">止めたい所で <b>Enter</b> → 文を打って <b>Enter</b>。時刻は自動で入ります。最後に「全部コピー」→ 送ってください</span></header>
-<main>
-  <section class="left">
-    <div class="player">
-    <div class="vwrap"><div id="yt"></div><div class="shield" id="shield" title="クリックで再生・停止"></div>
-      <canvas id="ink"></canvas><input id="inkText" hidden placeholder="文字を入れて Enter" autocomplete="off" enterkeyhint="done">
-      <div class="msg" id="msg" hidden>
-        <p>見る動画の YouTube のリンクを貼ってください</p>
-        <input id="url" placeholder="https://youtu.be/…" autocomplete="off">
-        <button id="go">開く</button>
-      </div></div>
-    <div class="bar">
-      <button id="pp" title="再生・停止（スペース）">▶</button>
-      <span class="tc" id="tc">0:00 / 0:00</span>
-      <input type="range" id="seek" min="0" max="1000" value="0" step="1" aria-label="再生位置">
-      <button id="mute" title="音を消す">🔊</button>
-      <input type="range" id="vol" min="0" max="100" step="5" value="100" title="音量" aria-label="音量">
+<header class="top">
+  <button class="iconbtn" id="menuBtn" aria-label="メニュー"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  <a class="logo" href="#" id="logo" aria-label="Vcheck 動画確認"><b>V<i></i>check</b><small>動画確認</small></a>
+  <form class="search" id="search" role="search">
+    <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
+    <input id="url" placeholder="YouTube のリンクを貼って、別の動画を開く" autocomplete="off" aria-label="YouTube のリンク">
+    <button type="submit" id="go">開く</button>
+  </form>
+  <button class="me" id="nameChip" aria-label="コメントに付く名前"><span class="avatar" id="avatar">?</span><span class="nm" id="chipName">名前を入れる</span></button>
+</header>
+<div class="scrim" id="scrim" hidden></div>
+<div class="wrap">
+  <nav class="side" id="side" aria-label="ページの中">
+    <a href="#player" class="on" data-go="player"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5v5l4.5-2.5z"/></svg>動画を見る</a>
+    <a href="#composer" data-go="composer"><svg class="i" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>コメントを書く</a>
+    <a href="#listHead" data-go="listHead"><svg class="i" viewBox="0 0 24 24"><path d="M8 7h12M8 12h12M8 17h12"/><circle cx="4" cy="7" r=".8"/><circle cx="4" cy="12" r=".8"/><circle cx="4" cy="17" r=".8"/></svg>コメント一覧</a>
+    <a href="#ovCard" data-go="ovCard"><svg class="i" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg>全体修正</a>
+    <a href="#returnCard" data-go="returnCard"><svg class="i" viewBox="0 0 24 24"><path d="M21 3L10 14"/><path d="M21 3l-7 18-4-7-7-4z"/></svg>レビュー完了</a>
+    <hr>
+    <p class="cap" id="secCap" hidden>区間</p>
+    <div id="sideSecs"></div>
+    <p class="cap">使い方</p>
+    <button class="nav" id="navHow"><svg class="i" viewBox="0 0 24 24"><path d="M4 5h6a2 2 0 012 2v12a2 2 0 00-2-2H4zM20 5h-6a2 2 0 00-2 2v12a2 2 0 012-2h6z"/></svg>書き方の例</button>
+    <button class="nav" id="navMore" title="使い方と詳しい操作"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>詳しい操作</button>
+  </nav>
+
+  <main class="main">
+    <div class="player" id="player">
+      <div class="vwrap"><div id="yt"></div><div class="shield" id="shield" title="クリックで再生・停止"></div>
+        <canvas id="ink"></canvas><input id="inkText" hidden placeholder="文字を入れて Enter" autocomplete="off" enterkeyhint="done">
+        <div class="vstate" id="vstate" role="status" aria-live="polite">
+          <div class="spin" id="vspin"></div>
+          <p id="vmsg">動画を読み込んでいます…</p>
+          <div class="row" id="vbtns" hidden>
+            <button class="btn" id="reload">もう一度読み込む</button>
+            <a class="btn yt" id="ytlink" target="_blank" rel="noopener"><svg class="ytmark" viewBox="0 0 28 20" aria-hidden="true"><rect width="28" height="20" rx="5.5" fill="#FF0000"/><path d="M11.2 5.6l7.4 4.4-7.4 4.4z" fill="#FFFFFF"/></svg><span>YouTube で確かめる</span></a>
+          </div>
+        </div>
+        <div class="msg" id="msg" hidden>
+          <p>見る動画の YouTube のリンクを貼ってください</p>
+          <input id="url2" placeholder="https://youtu.be/…" autocomplete="off">
+          <button class="btn primary" id="go2">開く</button>
+        </div>
+      </div>
+      <div class="bar">
+        <input type="range" class="rng" id="seek" min="0" max="1000" value="0" step="1" aria-label="再生位置">
+        <div class="brow">
+          <button class="ib" id="b2" aria-label="5秒戻る" title="5秒戻る"><svg class="i" viewBox="0 0 24 24"><path d="M5.6 8.5A7.5 7.5 0 1 1 4.5 12"/><path d="M4.5 4.5v4.5H9"/><text x="12.6" y="15.6" text-anchor="middle" font-size="8.5" font-weight="800" fill="currentColor" stroke="none" font-family="Nunito,Hiragino Sans,sans-serif">5</text></svg></button>
+          <button class="ib play" id="pp" aria-label="再生"><svg class="i" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor" stroke="none"/></svg></button>
+          <button class="ib" id="f2" aria-label="5秒進む" title="5秒進む"><svg class="i" viewBox="0 0 24 24"><path d="M18.4 8.5A7.5 7.5 0 1 0 19.5 12"/><path d="M19.5 4.5v4.5H15"/><text x="11.4" y="15.6" text-anchor="middle" font-size="8.5" font-weight="800" fill="currentColor" stroke="none" font-family="Nunito,Hiragino Sans,sans-serif">5</text></svg></button>
+          <button class="ib" id="mute" aria-label="音を消す"><svg class="i" viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg></button>
+          <input type="range" class="rng vol" id="vol" min="0" max="100" step="5" value="100" aria-label="音量">
+          <span class="grow"></span>
+          <span class="tc" id="tc">--:-- / --:--</span>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn primary big" id="write"><svg class="i" viewBox="0 0 24 24"><path d="M21 12a8.5 8.5 0 01-12.4 7.6L3.5 21l1.4-4.8A8.5 8.5 0 1121 12z"/><path d="M12 8.5v7M8.5 12h7"/></svg>この場面にコメント</button>
+      </div>
     </div>
-    <div class="steps">
-      <button id="b2" title="5秒戻る（Shift＋←）">«5秒</button>
-      <button id="b1" title="1コマ戻る（←）">‹1コマ</button>
-      <button id="f1" title="1コマ進む（→）">1コマ›</button>
-      <button id="f2" title="5秒進む（Shift＋→）">5秒»</button>
-      <button id="write" class="write" title="止めてコメントを書く（Enter）">✎ 止めて書く</button>
+
+    <section class="info" id="info">
+      <div>
+        <h1 id="ttl">（動画の題を読み込み中）</h1>
+        <label class="field namefield">あなたの名前（任意。コメントに付きます）<input id="name" autocomplete="off" placeholder="例：山田"></label>
+      </div>
+      <div class="acts3">
+        <button class="act" id="shareBtn"><span class="c"><svg class="i" viewBox="0 0 24 24"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></svg></span>リンク</button>
+        <button class="act" id="howBtn"><span class="c"><svg class="i" viewBox="0 0 24 24"><path d="M4 5h6a2 2 0 012 2v12a2 2 0 00-2-2H4zM20 5h-6a2 2 0 00-2 2v12a2 2 0 012-2h6z"/></svg></span>書き方</button>
+        <button class="act" id="moreBtn"><span class="c"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span>詳しい操作</button>
+      </div>
+      <div class="btnrow">
+        <a class="btn yt" id="ytOpen" target="_blank" rel="noopener"><svg class="ytmark" viewBox="0 0 28 20" aria-hidden="true"><rect width="28" height="20" rx="5.5" fill="#FF0000"/><path d="M11.2 5.6l7.4 4.4-7.4 4.4z" fill="#FFFFFF"/></svg><span>YouTube で開く</span></a>
+        <button class="btn done" id="toReturn"><span id="toReturnIcon"></span><span id="toReturnLabel">レビュー完了</span> <span class="cnt" id="unsentN" hidden>0</span></button>
+      </div>
+    </section>
+
+    <div class="card composer" id="composer">
+      <h2>コメントを書く</h2>
+      <div class="when"><span class="stamp" id="stamp" hidden></span><span id="whenNote">「この場面にコメント」をクリックしてください</span></div>
+      <div class="cbox">
+        <textarea id="box" rows="3" placeholder="修正してほしい内容" autocomplete="off" enterkeyhint="enter" aria-label="コメント"></textarea>
+        <div class="cbar">
+          <button class="ic" id="att" aria-label="画像を付ける" title="画像を付ける"><svg class="i" viewBox="0 0 24 24"><path d="M21.4 11.1l-9.2 9.2a6 6 0 01-8.5-8.5l9.2-9.2a4 4 0 015.7 5.7l-9.2 9.2a2 2 0 01-2.8-2.8l8.5-8.5"/></svg><span class="dotn" id="attN" hidden></span></button>
+          <button class="ic" id="drawOpen" aria-label="画面に描く" title="画面に描く"><svg class="i" viewBox="0 0 24 24"><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
+          <span class="stamp mini" id="stamp2" aria-hidden="true"></span>
+          <span class="grow"></span>
+          <button class="ic" id="mic" aria-label="声で入れる" title="声で入れる" hidden><svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button>
+          <button class="ic" id="cancel" aria-label="やめる" title="やめる（書いた文を消して戻る）" hidden><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          <button class="btn primary" id="add" disabled>追加</button>
+        </div>
+      </div>
+      <p class="hint" id="chint" hidden></p>
+      <div class="chips" id="secs" style="margin-top:10px"></div>
     </div>
-    <div class="draw" id="draw" hidden>
-      <span class="lbl">画面に描く</span>
-      <button data-tool="p" title="ペン"><b>✏︎</b><i> ペン</i></button>
-      <button data-tool="a" title="矢印"><b>↗</b><i> 矢印</i></button>
-      <button data-tool="r" title="四角"><b>▢</b><i> 四角</i></button>
-      <button data-tool="o" title="丸"><b>◯</b><i> 丸</i></button>
-      <button data-tool="t" title="文字"><b>Ａ</b><i> 文字</i></button>
-      <span class="sep"></span>
-      <button data-color="y" class="dot" style="--c:#f2d33a" title="黄"></button>
-      <button data-color="r" class="dot" style="--c:#ff4d4d" title="赤"></button>
-      <button data-color="w" class="dot" style="--c:#ffffff" title="白"></button>
-      <span class="sep"></span>
-      <button id="undo" title="1つ戻す"><b>↶</b><i> 戻す</i></button>
-      <button id="wipe" title="描いたものを全部消す"><b>✕</b><i> 消す</i></button>
+
+    <details class="card more" id="more">
+      <summary>使い方と詳しい操作（書き方の例・コマ送り・画面に描く）</summary>
+      <div class="grp">
+        <h3>使い方（3つの手順）</h3>
+        <ol class="flow" id="flow">
+          <li><b>1</b>動画を再生</li>
+          <li><b>2</b>直したい場面で「この場面にコメント」</li>
+          <li><b>3</b><span id="flow3">終わったら「レビュー完了」</span></li>
+        </ol>
+      </div>
+      <div class="grp how" id="howBox">
+        <h3>伝わりやすい書き方の例</h3>
+        <ul>
+          <li>字幕の文字を直す：<b>「子守」→「子守り」</b>（今の文字 → 直した文字）</li>
+          <li>声ごと切る：<b>「なんか」音声ごとカット</b></li>
+          <li>字幕だけ消す：<b>字幕の「じゃあ」だけ消す</b>（声は残る）</li>
+          <li>長く切る：<b>「じゃあこれ伝わると」〜「バズらせてください」までカット</b>（始めと終わりの言葉）</li>
+          <li>場所を動かす：<b>この話をおまけの1番目へ</b></li>
+          <li>足す・変える：<b>ポイントを「鍛えれば変身できるところが好き」に</b></li>
+          <li>見た目：画面に矢印や丸を描いて <b>このテロップをもう少し上に</b></li>
+          <li>理由を一言：<b>（視聴者目線を読みすぎ）</b>と添えると、ほかの場面も同じ考えで直せます</li>
+          <li>決まりごと：<b>今後も</b>か<b>今回だけ</b>を書く。時刻のないことは「全体修正」へ</li>
+        </ul>
+      </div>
+      <div class="grp">
+        <h3>コマ送り（止めた状態で1コマずつ）</h3>
+        <div class="row">
+          <button class="btn" id="b1">‹ 1コマ戻る</button>
+          <button class="btn" id="f1">1コマ進む ›</button>
+        </div>
+      </div>
+      <div class="grp draw" id="draw">
+        <h3>画面に描く（コメントを書いている間だけ）</h3>
+        <div class="row">
+          <button class="btn" data-tool="p"><svg class="i" viewBox="0 0 24 24"><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>ペン</button>
+          <button class="btn" data-tool="a"><svg class="i" viewBox="0 0 24 24"><path d="M5 19L19 5M10 5h9v9"/></svg>矢印</button>
+          <button class="btn" data-tool="r"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1.5"/></svg>四角</button>
+          <button class="btn" data-tool="o"><svg class="i" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8.5" ry="7.5"/></svg>丸</button>
+          <button class="btn" data-tool="t"><svg class="i" viewBox="0 0 24 24"><path d="M5 7V5h14v2M12 5v14M9 19h6"/></svg>文字</button>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="dot" data-color="y" style="--c:#f2d33a" aria-label="黄"></button>
+          <button class="dot" data-color="r" style="--c:#ff4d4d" aria-label="赤"></button>
+          <button class="dot" data-color="w" style="--c:#ffffff" aria-label="白"></button>
+          <button class="btn quiet" id="undo"><svg class="i" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg>1つ戻す</button>
+          <button class="btn quiet" id="wipe"><svg class="i" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>全部消す</button>
+        </div>
+        <p class="hint" id="drawNote"></p>
+      </div>
+      <div class="grp" id="kbd">
+        <h3>キーボード（パソコン）</h3>
+        <p class="keys"><kbd>スペース</kbd> 再生・停止　<kbd>←</kbd><kbd>→</kbd> 1コマ　<kbd>Shift</kbd>＋<kbd>←</kbd><kbd>→</kbd> 5秒<br>
+          <kbd>Enter</kbd> この場面にコメント（書いている時は追加）　<kbd>Shift</kbd>＋<kbd>Enter</kbd> 改行　<kbd>Esc</kbd> やめる</p>
+      </div>
+      <div class="grp" id="micNote" hidden>
+        <h3>声で入れる</h3>
+        <p class="keys">マイクのアイコンを押して話すと、声が文字になります（Chrome・Edge・Safari。Brave では使えません）。声はブラウザの音声認識（Google や Apple）に送られます。</p>
+      </div>
+    </details>
+  </main>
+
+  <aside class="aside">
+    <div class="card ret" id="returnCard">
+      <div class="body">
+        <h2>レビューが終わったら</h2>
+        <div class="sendrow">
+          <button class="btn done big" id="send" hidden><svg class="i" viewBox="0 0 24 24"><path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5L3 9.5z"/></svg><span class="lbl">レビュー完了</span></button>
+          <p class="note" id="returnNote"></p>
+          <button class="btn big line" id="copy"><svg class="i" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="3"/><path d="M15.5 8.5V6.5a3 3 0 0 0-3-3h-6a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h2"/></svg>コメントを全てコピー</button>
+        </div>
+        <p class="state" id="saveState" role="status"></p>
+        <p class="result" id="result" role="status" hidden></p>
+        <textarea id="copyBox" readonly hidden aria-label="コピーする文"></textarea>
+        <details class="others"><summary>コメント保存と削除</summary>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+            <button class="btn quiet" id="dl" title="この端末にコメントを文字のファイル（.txt）で保存します"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19h14"/></svg>コメントを保存</button>
+            <button class="btn danger" id="clear">コメントを全部消す</button>
+          </div>
+        </details>
+      </div>
     </div>
-    <div class="entry"><span class="stamp" id="stamp">--:--</span>
-      <input id="box" placeholder="直したいことを書いて Enter（例：文字を大きく）" autocomplete="off" enterkeyhint="send">
-      <button id="att" title="画像を付ける（選ぶ・ドラッグ・貼り付け）">🖼</button>
-      <button id="mic" title="声で入れる（押して話す。もう一度押すと止まる）" hidden>🎤</button>
-      <button id="add">追加</button></div>
+
+    <div class="card overall" id="ovCard">
+      <h2>全体修正</h2>
+      <p class="sub">時刻のないこと、「今後も」の決まりはここへ</p>
+      <textarea id="ov" placeholder="例：後ろの場面から素材を持ってこない"></textarea>
+      <div class="crow"><button class="btn quiet" id="ovatt"><svg class="i" viewBox="0 0 24 24"><path d="M21.4 11.1l-9.2 9.2a6 6 0 01-8.5-8.5l9.2-9.2a4 4 0 015.7 5.7l-9.2 9.2a2 2 0 01-2.8-2.8l8.5-8.5"/></svg>画像を付ける</button><span class="thumbs" id="ovthumbs"></span></div>
     </div>
-    <div class="who"><label for="name">名前</label><input id="name" placeholder="コメントに付く名前（任意）" autocomplete="off"></div>
-    <div class="sections" id="secs"></div>
-    <div class="keys" id="tkeys" hidden>「✎ 止めて書く」で止まって時刻が入ります → 文を書いて「追加」。止めている間は画面に指で描けます（ペン・矢印・四角・丸・文字）。動画を直接タップしても再生・停止できます。<br>
-      🎤 を押して話すと、声が文字になります（Chrome・Safari など。Brave では使えません）。<br>
-      コメントはこのブラウザに自動で残ります（閉じても続きから）。一覧の時刻を押すとその場面へ。文は押すと直せます。最後に「全部コピー」→ LINE などで送ってください。</div>
-    <div class="keys" id="keys">スペース：再生・停止　← →：1コマ戻る・進む（止めた状態で。YouTube なので少しずれることがあります）　Shift＋← →：5秒戻る・進む　Enter：コメント　Esc：コメントをやめて再生<br>
-      止めている間は画面に描けます（ペン・矢印・四角・丸・文字。色は黄・赤・白）。描いたものはコメントと一緒に残り、一覧の時刻を押すと出ます。<br>
-      🎤 を押して話すと、声が文字になります（Chrome・Edge・Safari。Brave では使えません。声はブラウザの音声認識（Google や Apple）に送られて文字になります）。<br>
-      コメントはこのブラウザに自動で残ります（閉じても続きから）。一覧の時刻を押すとその場面へ。文はクリックで直せます。</div>
-    <details class="how"><summary>伝わりやすい書き方の例</summary>
-      <ul>
-        <li>字幕の文字を直す：<b>「子守」→「子守り」</b>（今の文字 → 直した文字）</li>
-        <li>声ごと切る：<b>「なんか」音声ごとカット</b></li>
-        <li>字幕だけ消す：<b>字幕の「じゃあ」だけ消す</b>（声は残る）</li>
-        <li>長く切る：<b>「じゃあこれ伝わると」〜「バズらせてください」までカット</b>（始めと終わりの言葉）</li>
-        <li>場所を動かす：<b>この話をおまけの1番目へ</b></li>
-        <li>足す・変える：<b>ポイントを「鍛えれば変身できるところが好き」に</b></li>
-        <li>見た目：画面に矢印や丸を描いて <b>このテロップをもう少し上に</b></li>
-        <li>理由を一言：<b>（視聴者目線を読みすぎ）</b>と添えると、ほかの場面も同じ考えで直せます</li>
-        <li>決まりごと：<b>今後も</b>か<b>今回だけ</b>を書く。時刻のないことは「全体修正」へ</li>
-      </ul></details>
-  </section>
-  <section class="right">
-    <div class="tools">
-      <button class="send" id="send" hidden>送信</button>
-      <button class="primary" id="copy">全部コピー</button>
-      <button id="dl">ファイルに保存</button>
-      <button id="clear">全部消す</button>
+
+    <div class="chips" id="filters" role="group" aria-label="コメントの絞り込み">
+      <button class="chip" data-f="all" aria-pressed="true">すべて</button>
+      <button class="chip" data-f="unsent" aria-pressed="false">未送信</button>
+      <button class="chip" data-f="ink" aria-pressed="false">描き込み</button>
+      <button class="chip" data-f="img" aria-pressed="false">画像</button>
     </div>
-    <div class="sendstate" id="sendstate" hidden></div>
-    <div class="overall"><label for="ov">全体修正（時刻なし。「今後も」の決まりもここへ）</label>
-      <textarea id="ov" placeholder="例：後ろの場面から素材を持ってこない／イラストは添付の画風で"></textarea>
-      <div class="att"><button id="ovatt">🖼 画像を付ける</button><span class="thumbs" id="ovthumbs"></span></div></div>
-    <input type="file" id="pick" accept="image/*" multiple hidden>
-    <div class="count" id="count"></div>
-    <ol id="list"></ol>
-  </section>
-</main>
-<div class="toast" id="toast"></div>
-<div class="ver">動画確認ページ YouTube版 v1.7.1</div>
+    <div id="listCard">
+      <div class="listhead" id="listHead"><h2>コメント</h2><span id="count"></span></div>
+      <ol id="list"></ol>
+      <p class="empty" id="empty">まだコメントはありません。直したい場面で「この場面にコメント」を押してください。</p>
+    </div>
+
+
+    <details class="card fb" id="fbCard">
+      <summary>Vcheck への要望・不具合を送る</summary>
+      <p class="sub">動画へのコメントではなく、このページ（Vcheck）をもっと使いやすくするための声です。Vcheck の作り手に届きます。</p>
+      <textarea id="fbText" placeholder="例：ボタンが小さくて押しにくい" aria-label="Vcheck への要望"></textarea>
+      <div class="crow"><button class="btn line" id="fbSend">要望を送る</button></div>
+      <p class="result" id="fbResult" role="status" hidden></p>
+    </details>
+  </aside>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="ver">Vcheck 動画確認ページ v1.9.0</div>
+<input type="file" id="pick" accept="image/*" multiple hidden>
 <script>
-// 使い方：https://<ユーザー>.github.io/video-review/?v=<YouTube の動画ID か URL>&title=<題>&fps=29.97&ch=<秒>:<区間名>,<秒>:<区間名>
-// このページには番組の中身（字幕・文字起こし）は置かない。どの動画かはリンクで渡す。コメントは見た人のブラウザにだけ残る。
+// Vcheck 動画確認ページ v1.9.0（画面の作りを動画配信サイト風に。動きは v1.8.0 と同じ）
+// 使い方：https://<ユーザー>.github.io/video-review/?v=<YouTube の動画ID か URL>&title=<題>&fps=29.97&ch=<秒>:<区間名>,…&to=<受け取り口の URL>
+// このページには番組の中身（字幕・文字起こし）は置かない。どの動画かはリンクで渡す。コメントは見た人のブラウザに残り、「送信」した時だけ受け取り口に届く。
 const Q = new URLSearchParams(location.search);
 function videoIdOf(s) {
   if (!s) return "";
@@ -203,167 +510,223 @@ function videoIdOf(s) {
   if (m) return m[1];
   return /^[A-Za-z0-9_-]{11}$/.test(s) ? s : "";
 }
+const $ = id => document.getElementById(id);
 const VID = videoIdOf(Q.get("v") || location.hash.replace(/^#/, ""));
 let TITLE = Q.get("title") || "";      // 無い時は YouTube の動画の題を使う（短いリンク ?v=<ID> だけで済むように）
 const FPS = Number(Q.get("fps")) || 30000 / 1001;
 const SECTIONS = (Q.get("ch") || "").split(",").map(x => { const k = x.indexOf(":"); return k > 0 ? { t: Number(x.slice(0, k)), name: x.slice(k + 1) } : null; })
   .filter(x => x && isFinite(x.t) && x.name);
-const KEY = "ytreview:" + VID;
-document.getElementById("ttl").textContent = (TITLE || "動画確認ページ") + "  確認";
-if (TITLE) document.title = TITLE + " 確認";
-
-const box = document.getElementById("box"), stamp = document.getElementById("stamp"), list = document.getElementById("list");
-const nameEl = document.getElementById("name");
+const KEY = "ytreview:" + VID;          // 保存の形は v1.7 までと同じ（コメント・描き込み・全体修正・名前をそのまま読める）
+const TOUCH = matchMedia("(pointer: coarse)").matches;
+function setTitle(t) { $("ttl").textContent = t || (!VID ? "見る動画を指定してください" : vstate === "error" ? "（動画の題を読み込めませんでした）" : "（動画の題を読み込み中）"); if (t) document.title = t + "｜Vcheck"; }
+const box = $("box"), stamp = $("stamp"), list = $("list"), nameEl = $("name");
 let items = [];
 try { items = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { items = []; }
 try { nameEl.value = localStorage.getItem("ytreview:name") || ""; } catch (e) {}
 nameEl.addEventListener("change", () => { try { localStorage.setItem("ytreview:name", nameEl.value.trim()); } catch (e) {} });
-function save() { try { localStorage.setItem(KEY, JSON.stringify(items)); } catch (e) {} }
+let saveOK = true;
+function save() { try { localStorage.setItem(KEY, JSON.stringify(items)); saveOK = true; } catch (e) { saveOK = false; } }
 function fmt(t) { t = Math.max(0, t || 0); const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), s = Math.floor(t % 60);
   return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(s).padStart(2, "0"); }
 function secAt(t) { let sec = null; for (const s of SECTIONS) if (s.t <= t + 0.05) sec = s.name; return sec; }
-function toast(m) { const e = document.getElementById("toast"); e.textContent = m; e.classList.add("show"); setTimeout(() => e.classList.remove("show"), 1400); }
+let toastTimer = 0;
+function toast(m, ms) { const e = $("toast"); e.textContent = m; e.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => e.classList.remove("show"), ms || 1800); }
 
 // ---- YouTube プレーヤー（YouTube の操作バーは出さない。止めても画面の下の字幕が隠れないように）
-let player = null, ready = false;
+// 動画の状態：loading（読み込み中）／ready（再生できる）／error（失敗）。時刻が取れるのは ready の時だけ。
+let player = null, ready = false, vstate = "loading", slowTimer = 0, booted = false;   // booted：下の部品がそろってから画面を更新する
+setTitle(TITLE);
 const P = {
   t() { return ready ? player.getCurrentTime() : 0; },
   d() { return ready ? player.getDuration() : 0; },
-  paused() { return !ready || ![1, 3].includes(player.getPlayerState()); },   // 3＝読み込み中も再生中として扱う
+  st() { try { return ready ? player.getPlayerState() : -9; } catch (e) { return -9; } },
+  paused() { return !ready || ![1, 3].includes(this.st()); },
   play() { ready && player.playVideo(); }, pause() { ready && player.pauseVideo(); },
   seek(t) { ready && player.seekTo(Math.max(0, t), true); },
 };
+function canTime() { return ready && vstate === "ready"; }
+const ERR = { 2: "動画のリンクが正しくないようです。", 5: "このブラウザでは動画を再生できませんでした。", 100: "動画が見つかりません（非公開・削除になっている可能性があります）。",
+              101: "この動画はこのページでは再生できません（埋め込みが許可されていない、非公開・削除などが考えられます）。", 150: "この動画はこのページでは再生できません（埋め込みが許可されていない、非公開・削除などが考えられます）。" };
+function setV(st, msg, buttons) {
+  vstate = st;
+  $("vstate").hidden = st === "ready";
+  $("vspin").hidden = st !== "loading";
+  if (msg) $("vmsg").textContent = msg;
+  $("vbtns").hidden = !buttons;
+  if (!TITLE) setTitle("");
+  if (booted) refreshComposer();
+}
+$("ytlink").href = "https://www.youtube.com/watch?v=" + VID;
+$("reload").onclick = () => location.reload();
 window.onYouTubeIframeAPIReady = function () {
-  if (!VID) { document.getElementById("msg").hidden = false; return; }
+  if (!VID) return;
   player = new YT.Player("yt", { videoId: VID, playerVars: { controls: 0, cc_load_policy: 0, rel: 0, playsinline: 1, modestbranding: 1, disablekb: 1, iv_load_policy: 3 },
-    events: { onReady: () => { ready = true; useVideoTitle(); upd(); }, onStateChange: e => { if (e.data === 1) { noCC(); if (shown) { shown = null; drawInk(); } } upd(); } } });
+    events: {
+      onReady: () => { ready = true; clearTimeout(slowTimer); setV("ready"); useVideoTitle(); upd(); },
+      onError: e => { clearTimeout(slowTimer); setV("error", (ERR[e.data] || "動画を読み込めませんでした（" + e.data + "）。") + "もう一度読み込むか、YouTube で開けるか確かめてください。", true); },
+      onStateChange: e => { if (e.data === 1) { noCC(); if (shown) { shown = null; drawInk(); } } upd(); } } });
 };
 function useVideoTitle() {
   if (TITLE) return;
-  try { const t = (player.getVideoData() || {}).title; if (t) { TITLE = t; document.getElementById("ttl").textContent = t + "  確認"; document.title = t + " 確認"; } } catch (e) {}
+  try { const t = (player.getVideoData() || {}).title; if (t) { TITLE = t; setTitle(t); } } catch (e) {}
 }
-function noCC() {        // YouTube の自動字幕は消す（動画に焼き込んだテロップと重なるため）
-  try { player.unloadModule("captions"); player.unloadModule("cc"); } catch (e) {}
-};
-document.getElementById("go").onclick = () => {
-  const id = videoIdOf(document.getElementById("url").value);
+function noCC() { try { player.unloadModule("captions"); player.unloadModule("cc"); } catch (e) {} }   // 自動字幕は消す（焼き込みのテロップと重なる）
+function openVid(v) {
+  const id = videoIdOf(v);
   if (!id) { toast("YouTube のリンクを確かめてください"); return; }
-  const q = new URLSearchParams(location.search); q.set("v", id); location.search = q.toString();
-};
-const s = document.createElement("script"); s.src = "https://www.youtube.com/iframe_api"; document.head.append(s);
+  const q = new URLSearchParams(location.search); q.set("v", id); q.delete("title"); location.search = q.toString();
+}
+$("search").addEventListener("submit", e => { e.preventDefault(); openVid($("url").value); });
+$("go2").onclick = () => openVid($("url2").value);
+if (!VID) { $("msg").hidden = false; setV("error", "見る動画が指定されていません。"); $("vstate").hidden = true; }
+else {
+  const s = document.createElement("script"); s.src = "https://www.youtube.com/iframe_api";
+  s.onerror = () => setV("error", "YouTube に接続できませんでした。電波や、YouTube を止める設定・拡張機能がないか確かめてください。", true);
+  document.head.append(s);
+  slowTimer = setTimeout(() => { if (!ready && vstate === "loading") setV("loading", "読み込みに時間がかかっています。少し待つか、もう一度読み込んでください。", true); }, 15000);
+}
 
+// ---- コメントを書く
 let pinned = null;
-function pin() { P.pause(); pinned = P.t(); stamp.textContent = fmt(pinned); shown = null; inkMode(true); }
-function unpin() { if (listening && rec) { try { rec.abort(); } catch (e) {} }  box.value = ""; pinned = null; stamp.textContent = "--:--"; box.blur(); inkMode(false); P.play(); }
+function pin() {
+  if (!canTime()) { refreshComposer(true); toast("動画が読み込めていないので、場面の時刻を入れられません"); return false; }
+  P.pause(); pinned = P.t(); shown = null; inkMode(true); refreshComposer(); return true;
+}
+function unpin(resume) {
+  if (listening && rec) { try { rec.abort(); } catch (e) {} }
+  box.value = ""; fitBox(); pinned = null; pendImgs = []; showPend(); inkMode(false); refreshComposer();
+  box.blur(); if (resume) P.play();
+}
+function hasDraft() { return !!(box.value.trim() || shapes.length || pendImgs.length); }
+function refreshComposer(warn) {
+  const set = pinned !== null;
+  stamp.textContent = set ? fmt(pinned) : ""; stamp.hidden = !set; stamp.classList.toggle("set", set);
+  const s2 = $("stamp2"); s2.textContent = set ? fmt(pinned) : "時刻なし"; s2.classList.toggle("set", set);
+  $("whenNote").textContent = set ? "この時刻にコメントします（5秒ずつ前後に動かせます）" : "「この場面にコメント」をクリックしてください";
+  $("cancel").hidden = !set && !box.value;
+  $("add").disabled = !hasDraft() || (!set && !canTime());
+  const h = $("chint");
+  if (!canTime() && (warn || box.value)) {
+    h.hidden = false; h.className = "hint warn";
+    h.textContent = vstate === "error" ? "動画が読み込めていないため、時刻を入れられません。書いた文は残ります。動画が表示されてから「追加」を押してください。"
+                                       : "動画を読み込み中です。表示されてから「この場面にコメント」を押してください。";
+  } else if (set && !TOUCH) { h.hidden = false; h.className = "hint"; h.textContent = "Enter で追加・Shift＋Enter で改行・Esc でやめる"; }
+  else h.hidden = true;
+  const dn = $("drawNote"); dn.textContent = set ? "動画の上に指やマウスで描けます。描いたものはこのコメントと一緒に残ります。" : "「この場面にコメント」を押すと、動画の上に指やマウスで描けます。描いたものはコメントと一緒に残ります。";
+  drawBar.querySelectorAll("button").forEach(b => b.disabled = !set);
+}
 function commit() {
-  if (pinned === null) pin();
+  if (pinned === null && !pin()) return;            // 時刻が取れない時は確定しない（0:00 のコメントにしない）
   const text = box.value.trim() || (shapes.length ? "（描き込み）" : "") || (pendImgs.length ? "（画像）" : "");
-  if (text) {
-    const it = { t: pinned, text, sec: secAt(pinned) }; if (shapes.length) it.d = shapes.map(roundShape);
-    if (pendImgs.length) { it.images = pendImgs; pendImgs = []; showPend(); }
-    items.push(it); items.sort((a, b) => a.t - b.t); save(); render(); toast(fmt(pinned) + " に追加");
-  }
-  unpin();
+  if (!text) { box.focus(); return; }
+  const it = { t: pinned, text, sec: secAt(pinned) }; if (shapes.length) it.d = shapes.map(roundShape);
+  if (pendImgs.length) { it.images = pendImgs; pendImgs = []; }
+  items.push(it); items.sort((a, b) => a.t - b.t); save(); render();
+  toast(saveOK ? fmt(it.t) + " にコメントを追加しました" : "追加しましたが、このブラウザに保存できませんでした（容量がいっぱいの可能性）", 2200);
+  unpin(true);
 }
-// スマホ・タブレット（Enter や矢印キーが無い）用のボタン
-const TOUCH = matchMedia("(pointer: coarse)").matches;
-document.getElementById("write").onclick = () => { pin(); box.focus(); };
-document.getElementById("add").onclick = () => commit();
-document.getElementById("b1").onclick = () => step(-1);
-document.getElementById("f1").onclick = () => step(1);
-const JUMP = 5;   // 「戻る・進む」の秒数（ユーザー：「2秒戻しではなく5秒戻しに」2026-10-02）
-document.getElementById("b2").onclick = () => moveTo(P.t() - JUMP);
-document.getElementById("f2").onclick = () => moveTo(P.t() + JUMP);
-box.addEventListener("focus", () => document.body.classList.add("typing"));
-box.addEventListener("blur", () => setTimeout(() => { if (document.activeElement !== box) document.body.classList.remove("typing"); }, 250));   // すぐ戻すと「追加」の位置がずれて押せない
-document.getElementById("add").addEventListener("mousedown", e => e.preventDefault());   // 押しても入力欄から外れないように
-document.querySelectorAll(".steps button:not(.write)").forEach(b => b.addEventListener("click", () => b.blur()));
-box.addEventListener("touchstart", () => { if (pinned === null) pin(); }, { passive: true });
-if (TOUCH) {   // 透明の板を外して、動画を直接タップできるようにする（スマホは最初の再生を動画のタップで始める必要がある）
-  document.getElementById("shield").hidden = true;
-  document.getElementById("keys").hidden = true;
-  document.getElementById("tkeys").hidden = false;
-  box.placeholder = "直したいことを書く";
-  document.getElementById("help").textContent = "直したい所で「✎ 止めて書く」→ 文を書いて「追加」。最後に「全部コピー」→ 送ってください";
+function fitBox() { box.style.height = "auto"; box.style.height = Math.min(box.scrollHeight + 2, 180) + "px"; }
+function scrollToComposer() {
+  const c = $("composer");
+  requestAnimationFrame(() => { const top = c.getBoundingClientRect().top + scrollY - (innerWidth <= 1000 ? $("player").offsetHeight + 8 : 16); if (Math.abs(scrollY - top) > 4) scrollTo({ top: Math.max(0, top), behavior: "smooth" }); });
 }
-// ---- 声で入れる（ブラウザの音声認識。Chrome・Edge・Safari・スマホ。Brave は仕組みを止めているので使えない）
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-const mic = document.getElementById("mic");
-const IS_BRAVE = !!(navigator.brave);
-let rec = null, listening = false, micBase = "";
-if (SR && !IS_BRAVE) mic.hidden = false;
-function micStop() { listening = false; mic.classList.remove("on"); mic.textContent = "🎤"; box.placeholder = TOUCH ? "直したいことを書く" : "直したいことを書いて Enter（例：文字を大きく）"; }
-mic.addEventListener("mousedown", e => e.preventDefault());   // 押しても入力欄の状態を変えない
-mic.onclick = () => {
-  if (listening && rec) { rec.stop(); return; }
-  if (pinned === null) pin();                                 // 止めて時刻を入れてから聞く
-  rec = new SR(); rec.lang = "ja-JP"; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
-  micBase = box.value ? box.value.replace(/\s+$/, "") + " " : "";
-  rec.onresult = e => {
-    let fin = "", mid = "";
-    for (let i = 0; i < e.results.length; i++) { const r = e.results[i]; (r.isFinal ? (fin += r[0].transcript) : (mid += r[0].transcript)); }
-    box.value = (micBase + fin + mid).trim();
-  };
-  rec.onerror = e => {
-    const why = { "not-allowed": "マイクを使う許可が必要です（ブラウザの許可を確かめてください）", "service-not-allowed": "マイクを使う許可が必要です",
-                  "no-speech": "声が聞こえませんでした。もう一度 🎤", "audio-capture": "マイクが見つかりません",
-                  "network": "このブラウザでは声の入力が使えません。Chrome か Safari で開いてください" }[e.error] || ("声の入力が止まりました（" + e.error + "）");
-    toast(why);
-    if (e.error === "network" || e.error === "service-not-allowed") mic.hidden = true;
-  };
-  rec.onend = () => { micStop(); if (box.value.trim()) toast("内容を確かめて「追加」（Enter）"); };
-  try { rec.start(); listening = true; mic.classList.add("on"); mic.textContent = "● 停止"; box.placeholder = "話してください…"; }
-  catch (err) { micStop(); toast("声の入力を始められませんでした"); }
-};
-box.addEventListener("mousedown", () => { if (pinned === null) pin(); });
-box.addEventListener("input", () => { if (pinned === null) pin(); });
+$("write").onclick = () => { if (pinned === null && !pin()) return; box.focus({ preventScroll: true }); scrollToComposer(); };
+$("add").onclick = () => commit();
+$("cancel").onclick = () => unpin(false);
+["add", "cancel", "att", "mic", "drawOpen"].forEach(id => $(id).addEventListener("mousedown", e => e.preventDefault()));   // 押しても入力欄から外れない
+box.addEventListener("input", () => { if (pinned === null && canTime()) pin(); fitBox(); refreshComposer(); });
+box.addEventListener("focus", () => { document.body.classList.add("typing"); if (pinned === null && canTime() && TOUCH) pin(); setTimeout(scrollToComposer, 250); });
+box.addEventListener("blur", () => setTimeout(() => { if (document.activeElement !== box) document.body.classList.remove("typing"); }, 250));
 box.addEventListener("keydown", e => {
-  if (e.isComposing) return;
-  if (e.key === "Enter" || e.key === "Escape") e.stopPropagation();
-  if (e.key === "Enter") { e.preventDefault(); commit(); }
-  else if (e.key === "Escape") unpin();
+  if (e.isComposing || e.keyCode === 229) return;
+  if (e.key === "Escape") { e.stopPropagation(); unpin(false); return; }
+  if (e.key === "Enter" && !e.shiftKey && !TOUCH) { e.preventDefault(); e.stopPropagation(); commit(); }   // スマホの Enter は改行
 });
-function moveTo(t) { t = Math.max(0, t); P.seek(t); if (pinned !== null) { pinned = t; stamp.textContent = fmt(t); } setTimeout(upd, 150); }   // 書いている途中なら時刻も動かす
-function step(d) { const cur = Math.floor(P.t() * FPS + 0.01); P.pause(); moveTo((cur + d + 0.5) / FPS); }
+$("drawOpen").onclick = () => { if (pinned === null && !pin()) return; $("more").open = true; setTimeout(() => $("draw").scrollIntoView({ behavior: "smooth", block: "nearest" }), 50); };
+// キーボードの高さに合わせる（見えている高さを CSS に渡す）
+function vv() { const h = window.visualViewport ? visualViewport.height : innerHeight; document.documentElement.style.setProperty("--vvh", h + "px"); }
+vv(); if (window.visualViewport) visualViewport.addEventListener("resize", () => { vv(); if (document.body.classList.contains("typing")) scrollToComposer(); });
+
+// ---- 戻る・進む・コマ送り
+const JUMP = 5;   // 「戻る・進む」の秒数（ユーザー：「2秒戻しではなく5秒戻しに」2026-10-02）
+function moveTo(t) { if (!canTime()) { toast("動画の読み込みを待ってください"); return; } t = Math.max(0, Math.min(t, P.d() || t)); P.seek(t); if (pinned !== null) { pinned = t; refreshComposer(); } setTimeout(upd, 150); }
+function step(d) { if (!canTime()) return; const cur = Math.floor(P.t() * FPS + 0.01); P.pause(); moveTo((cur + d + 0.5) / FPS); }
+$("b2").onclick = () => moveTo(P.t() - JUMP);
+$("f2").onclick = () => moveTo(P.t() + JUMP);
+$("b1").onclick = () => step(-1);
+$("f1").onclick = () => step(1);
+document.querySelectorAll(".bar .ib, .more .btn").forEach(b => b.addEventListener("click", () => b.blur()));
 document.addEventListener("keydown", e => {
   const a = document.activeElement;
-  if (a === box || a === nameEl || (a && (a.isContentEditable || a.id === "url" || a.id === "inkText"))) return;
-  if (e.key === "Enter") { e.preventDefault(); pin(); box.focus(); }
-  else if (e.key === " ") { e.preventDefault(); P.paused() ? P.play() : P.pause(); }
+  if (a && (a.tagName === "TEXTAREA" || a.tagName === "INPUT" || a.isContentEditable)) return;
+  if (e.key === "Enter") { if (a && (a.tagName === "BUTTON" || a.tagName === "A" || a.tagName === "SUMMARY")) return; e.preventDefault(); $("write").click(); }
+  else if (e.key === " ") { if (a && (a.tagName === "BUTTON" || a.tagName === "SUMMARY")) return; e.preventDefault(); P.paused() ? P.play() : P.pause(); }
   else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
     e.preventDefault(); const dir = e.key === "ArrowLeft" ? -1 : 1;
     if (e.shiftKey) moveTo(P.t() + JUMP * dir); else step(dir);
   }
 });
+if (TOUCH) { $("shield").hidden = true; $("kbd").hidden = true; }   // スマホは動画を直接タップして再生（最初の再生はタップが必要）
 
 // ---- 自前の再生バー
-const pp = document.getElementById("pp"), tc = document.getElementById("tc"), seek = document.getElementById("seek");
-const vol = document.getElementById("vol"), mute = document.getElementById("mute");
-let seeking = false;
+const pp = $("pp"), tc = $("tc"), seek = $("seek"), vol = $("vol"), mute = $("mute");
+const SV_PLAY = '<svg class="i" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor" stroke="none"/></svg>', SV_PAUSE = '<svg class="i" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none"/></svg>', SV_VOL = '<svg class="i" viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg>', SV_MUTE = '<svg class="i" viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9l5 6M21 9l-5 6"/></svg>';
+let seeking = false, playAsked = 0;
 function upd() {
-  pp.textContent = P.paused() ? "▶" : "❚❚";
-  tc.textContent = fmt(P.t()) + " / " + fmt(P.d());
+  const st = P.st();
+  const pz = P.paused(); if (pp.dataset.s !== String(pz)) { pp.dataset.s = pz; pp.innerHTML = pz ? SV_PLAY : SV_PAUSE; pp.setAttribute("aria-label", pz ? "再生" : "一時停止"); }
+  if (!canTime()) tc.textContent = "--:-- / --:--";
+  else tc.textContent = (st === 3 ? "読み込み中 " : "") + fmt(P.t()) + " / " + fmt(P.d());
   if (!seeking && P.d()) seek.value = Math.round(P.t() / P.d() * 1000);
+  seek.style.setProperty("--p", seek.value / 10 + "%");
+  if (playAsked && st === 1) playAsked = 0;
+  if (playAsked && Date.now() - playAsked > 9000 && canTime()) { playAsked = 0; toast(TOUCH ? "動画を直接タップして再生してください" : "再生が始まりません。もう一度押すか、ページを読み込み直してください", 3200); }
 }
 setInterval(upd, 250);
-pp.onclick = () => {
-  const was = P.paused(); was ? P.play() : P.pause(); pp.blur();
-  if (was && TOUCH) setTimeout(() => { if (P.paused()) toast("動画を直接タップして再生してください"); }, 1500);
-};
-document.getElementById("shield").onclick = () => { P.paused() ? P.play() : P.pause(); };
-seek.addEventListener("input", () => { seeking = true; if (P.d()) moveTo(seek.value / 1000 * P.d()); });
+pp.onclick = () => { if (!canTime()) { toast("動画の読み込みを待ってください"); return; } const was = P.paused(); was ? (P.play(), playAsked = Date.now()) : P.pause(); pp.blur(); };
+$("shield").onclick = () => { if (!canTime()) return; P.paused() ? (P.play(), playAsked = Date.now()) : P.pause(); };
+seek.addEventListener("input", () => { seek.style.setProperty("--p", seek.value / 10 + "%"); seeking = true; if (P.d()) moveTo(seek.value / 1000 * P.d()); });
 seek.addEventListener("change", () => { seeking = false; seek.blur(); });
-vol.addEventListener("input", () => { if (ready) { player.setVolume(Number(vol.value)); player.unMute(); } mute.textContent = "🔊"; });
+vol.style.setProperty("--p", vol.value + "%");
+vol.addEventListener("input", () => { vol.style.setProperty("--p", vol.value + "%"); if (ready) { player.setVolume(Number(vol.value)); player.unMute(); } mute.innerHTML = SV_VOL; mute.setAttribute("aria-label", "音を消す"); });
 vol.addEventListener("change", () => vol.blur());
-mute.onclick = () => { if (!ready) return; if (player.isMuted()) { player.unMute(); mute.textContent = "🔊"; } else { player.mute(); mute.textContent = "🔇"; } mute.blur(); };
+mute.onclick = () => { if (!ready) return; const m = player.isMuted(); m ? player.unMute() : player.mute(); mute.innerHTML = m ? SV_VOL : SV_MUTE; mute.setAttribute("aria-label", m ? "音を消す" : "音を出す"); mute.blur(); };
+
+// ---- 声で入れる（ブラウザの音声認識。Chrome・Edge・Safari・スマホ。Brave は仕組みを止めているので使えない）
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const mic = $("mic");
+let rec = null, listening = false, micBase = "";
+if (SR && !navigator.brave) { mic.hidden = false; $("micNote").hidden = false; }
+function micStop() { listening = false; mic.classList.remove("on"); mic.setAttribute("aria-label", "声で入れる"); mic.title = "声で入れる"; box.placeholder = "修正してほしい内容"; }
+mic.onclick = () => {
+  if (listening && rec) { rec.stop(); return; }
+  if (pinned === null && !pin()) return;
+  rec = new SR(); rec.lang = "ja-JP"; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+  micBase = box.value ? box.value.replace(/\s+$/, "") + " " : "";
+  rec.onresult = e => {
+    let fin = "", mid = "";
+    for (let i = 0; i < e.results.length; i++) { const r = e.results[i]; (r.isFinal ? (fin += r[0].transcript) : (mid += r[0].transcript)); }
+    box.value = (micBase + fin + mid).trim(); fitBox(); refreshComposer();
+  };
+  rec.onerror = e => {
+    const why = { "not-allowed": "マイクを使う許可が必要です（ブラウザの許可を確かめてください）", "service-not-allowed": "マイクを使う許可が必要です",
+                  "no-speech": "声が聞こえませんでした。もう一度マイクのアイコンを押してください", "audio-capture": "マイクが見つかりません",
+                  "network": "このブラウザでは声の入力が使えません。Chrome か Safari で開いてください" }[e.error] || ("声の入力が止まりました（" + e.error + "）");
+    toast(why, 3000);
+    if (e.error === "network" || e.error === "service-not-allowed") mic.hidden = true;
+  };
+  rec.onend = () => { micStop(); if (box.value.trim()) toast("内容を確かめて「追加」"); };
+  try { rec.start(); listening = true; mic.classList.add("on"); mic.setAttribute("aria-label", "声の入力を止める"); mic.title = "声の入力を止める"; box.placeholder = "話してください…（もう一度押すと止まります）"; }
+  catch (err) { micStop(); toast("声の入力を始められませんでした"); }
+};
 
 // ---- 画像（参考の絵柄やスクショ。ページで縮めてから持つ）と全体修正
 let pendImgs = [], overall = { text: "", images: [], sentText: null, sentN: 0 };
 try { overall = Object.assign(overall, JSON.parse(localStorage.getItem(KEY + ":overall") || "{}")); } catch (e) {}
-const ov = document.getElementById("ov"), pick = document.getElementById("pick");
+const ov = $("ov"), pick = $("pick");
 ov.value = overall.text || "";
-function saveOverall() { try { localStorage.setItem(KEY + ":overall", JSON.stringify(overall)); } catch (e) { toast("画像が多くて保存しきれません。送信してください"); } }
-ov.addEventListener("input", () => { overall.text = ov.value; saveOverall(); });
+function saveOverall() { try { localStorage.setItem(KEY + ":overall", JSON.stringify(overall)); } catch (e) { toast("画像が多くて保存しきれません。送信してください", 3000); } }
+ov.addEventListener("input", () => { overall.text = ov.value; saveOverall(); updState(); });
 async function shrink(file) {
   const img = await createImageBitmap(file);
   const k = Math.min(1, 1280 / Math.max(img.width, img.height));
@@ -372,51 +735,64 @@ async function shrink(file) {
   return c.toDataURL("image/jpeg", 0.8);
 }
 let pickFor = "entry";
-function thumbs(el, list, onDel) {
+function thumbs(el, arr, onDel) {
   el.innerHTML = "";
-  list.forEach((u, i) => { const im = document.createElement("img"); im.src = u; im.title = "押すと外す"; im.onclick = () => onDel(i); el.append(im); });
+  arr.forEach((u, i) => { const im = document.createElement("img"); im.src = u; im.alt = "付けた画像（押すと外す）"; im.title = "押すと外す"; im.onclick = () => onDel(i); el.append(im); });
 }
-function showOv() { thumbs(document.getElementById("ovthumbs"), overall.images, i => { overall.images.splice(i, 1); saveOverall(); showOv(); }); }
-function showPend() { const b = document.getElementById("att"); b.textContent = pendImgs.length ? "🖼" + pendImgs.length : "🖼"; }
+function showOv() { thumbs($("ovthumbs"), overall.images, i => { overall.images.splice(i, 1); saveOverall(); showOv(); updState(); }); }
+function showPend() { const n = $("attN"); n.hidden = !pendImgs.length; n.textContent = pendImgs.length; $("att").setAttribute("aria-label", pendImgs.length ? "画像を付ける（" + pendImgs.length + "枚付いています）" : "画像を付ける"); }
 async function addImages(files, where) {
+  let n = 0;
   for (const f of files) {
     if (!f.type.startsWith("image/")) continue;
-    const u = await shrink(f);
-    if (where === "overall") { overall.images.push(u); saveOverall(); showOv(); }
-    else { if (pinned === null) pin(); pendImgs.push(u); showPend(); }
+    if (where !== "overall" && pinned === null && !pin()) return;
+    const u = await shrink(f); n++;
+    if (where === "overall") { overall.images.push(u); saveOverall(); showOv(); updState(); }
+    else { pendImgs.push(u); showPend(); refreshComposer(); }
   }
-  toast("画像を付けました");
+  if (n) toast("画像を付けました");
 }
-document.getElementById("att").addEventListener("mousedown", e => e.preventDefault());
-document.getElementById("att").onclick = () => { pickFor = "entry"; if (pinned === null) pin(); pick.click(); };
-document.getElementById("ovatt").onclick = () => { pickFor = "overall"; pick.click(); };
+$("att").onclick = () => { pickFor = "entry"; if (pinned === null && !pin()) return; pick.click(); };
+$("ovatt").onclick = () => { pickFor = "overall"; pick.click(); };
 pick.onchange = () => { addImages([...pick.files], pickFor); pick.value = ""; };
-box.addEventListener("paste", e => { const fs = [...(e.clipboardData || {}).files || []].filter(f => f.type.startsWith("image/")); if (fs.length) { e.preventDefault(); addImages(fs, "entry"); } });
-ov.addEventListener("paste", e => { const fs = [...(e.clipboardData || {}).files || []].filter(f => f.type.startsWith("image/")); if (fs.length) { e.preventDefault(); addImages(fs, "overall"); } });
-document.querySelector(".overall").addEventListener("dragover", e => e.preventDefault());
-document.querySelector(".overall").addEventListener("drop", e => { e.preventDefault(); addImages([...e.dataTransfer.files], "overall"); });
-document.querySelector(".entry").addEventListener("dragover", e => e.preventDefault());
-document.querySelector(".entry").addEventListener("drop", e => { e.preventDefault(); addImages([...e.dataTransfer.files], "entry"); });
+box.addEventListener("paste", e => { const fs = [...((e.clipboardData || {}).files || [])].filter(f => f.type.startsWith("image/")); if (fs.length) { e.preventDefault(); addImages(fs, "entry"); } });
+ov.addEventListener("paste", e => { const fs = [...((e.clipboardData || {}).files || [])].filter(f => f.type.startsWith("image/")); if (fs.length) { e.preventDefault(); addImages(fs, "overall"); } });
+for (const [sel, where] of [[".overall", "overall"], ["#composer", "entry"]]) {
+  document.querySelector(sel).addEventListener("dragover", e => e.preventDefault());
+  document.querySelector(sel).addEventListener("drop", e => { e.preventDefault(); addImages([...e.dataTransfer.files], where); });
+}
 showOv();
 
-// ---- 送信（Google の受け取り口へ。コメントはシート、画像はドライブ。Claude が読む）
+// ---- 返し方：送信（受け取り口があるページ）とコピー（手で返す）を分けて表示する
 const RECEIVER = Q.get("to") || "https://script.google.com/macros/s/AKfycbwvGfAhFiiCpCXHqsWG-9pUg8dW_lAUeq3GvgfcA5GGjVkxiMTjJeihB6EO-IWKkLrnug/exec";   // 受け取り口（このページを置いた人の Google。ほかの人は自分の GitHub にコピーして自分の URL に替える）
-const sendBtn = document.getElementById("send"), sendState = document.getElementById("sendstate");
+const sendBtn = $("send"), copyBtn = $("copy");
 if (RECEIVER) {
   sendBtn.hidden = false;
-  for (const id of ["help", "tkeys"]) { const e = document.getElementById(id); e.innerHTML = e.innerHTML.replace(/「全部コピー」→ (LINE などで)?送ってください/, "「送信」を押してください（Claude に届きます）"); }
-} else {   // 受け取り口が無い時は画像を届けられないので、画像のボタンは出さない
-  document.getElementById("att").hidden = true; document.getElementById("ovatt").parentElement.hidden = true;
+  $("flow3").textContent = "終わったら「レビュー完了」";
+  $("returnNote").textContent = "↑ 押すと、書いたコメント・描き込み・画像が動画の作り手に届きます。何度押しても大丈夫です（新しく書いた分だけ届きます）。メッセージで相手に送りたい時は下の「コメントを全てコピー」。";
+} else {
+  copyBtn.classList.remove("line"); copyBtn.classList.add("primary");
+  $("flow3").textContent = "終わったら「コメントを全てコピー」してメッセージで相手に送る";
+  $("returnNote").textContent = "下の「コメントを全てコピー」を押して、メッセージに貼り付けて相手に送ってください";
+  $("att").hidden = true; $("ovatt").parentElement.hidden = true;     // 受け取り口が無い時は画像を届けられないので出さない
 }
-function stateText() {
-  const left = items.filter(it => !it.sent).length + ((overall.text || overall.images.length) && (overall.text !== overall.sentText || overall.images.length !== overall.sentN) ? 1 : 0);
-  sendState.hidden = !RECEIVER; sendState.textContent = left ? "まだ送っていない：" + left + " 件" : "全部送りました ✓";
+function ovPending() { return (overall.text || overall.images.length) && (overall.text !== overall.sentText || overall.images.length !== overall.sentN) ? 1 : 0; }
+function updState() {
+  const el = $("saveState"), unsent = items.filter(it => !it.sent).length + ovPending(), any = items.length || ovPending();
+  updMeta(unsent);
+  el.hidden = !any;
+  if (!any) return;
+  if (!saveOK) { el.className = "state unsent"; el.textContent = "このブラウザに保存できませんでした。閉じる前に「レビュー完了」か「コメントを全てコピー」をしてください。"; return; }
+  if (RECEIVER && !unsent) { el.className = "state done"; el.textContent = "✓ すべて送信済み（このブラウザにも保存されています）"; return; }
+  el.className = "state unsent";
+  el.textContent = RECEIVER ? "このブラウザに保存済み・相手には未送信 " + unsent + " 件（「レビュー完了」で届きます）"
+                            : "このブラウザに保存済み・相手には未送信（「コメントを全てコピー」してメッセージで相手に送ってください）";
 }
+function showResult(ok, msg) { const r = $("result"); r.hidden = false; r.className = "result " + (ok ? "ok" : "ng"); r.textContent = msg; toast(msg, 3000); }
 sendBtn.onclick = async () => {
-  const todo = items.filter(it => !it.sent);
-  const ovNew = (overall.text || overall.images.length) && (overall.text !== overall.sentText || overall.images.length !== overall.sentN);
-  if (!todo.length && !ovNew) { toast("送るものはありません"); return; }
-  sendBtn.disabled = true; sendBtn.textContent = "送信中…";
+  const todo = items.filter(it => !it.sent), ovNew = !!ovPending();
+  if (!todo.length && !ovNew) { showResult(true, items.length ? "送るものはありません（すべて送信済みです）" : "まだコメントがありません"); return; }
+  sendBtn.disabled = true; sendBtn.querySelector(".lbl").textContent = "送信中…";
   const body = { video: VID, title: TITLE, name: nameEl.value.trim(),
     overall: ovNew ? { text: overall.text, images: overall.images } : null,
     items: todo.map(it => ({ t: Math.round(it.t * 100) / 100, tc: fmt(it.t), sec: it.sec || "", text: it.text,
@@ -427,56 +803,104 @@ sendBtn.onclick = async () => {
     if (!j.ok) throw new Error("ng");
     todo.forEach(it => it.sent = true); save();
     if (ovNew) { overall.sentText = overall.text; overall.sentN = overall.images.length; saveOverall(); }
-    render(); toast("送りました（" + (todo.length + (ovNew ? 1 : 0)) + " 件）");
-  } catch (e) { toast("送れませんでした。電波を確かめて、もう一度"); }
-  sendBtn.disabled = false; sendBtn.textContent = "送信";
+    render(); showResult(true, "レビュー完了。" + (todo.length + (ovNew ? 1 : 0)) + " 件が動画の作り手に届きました。");
+  } catch (e) { showResult(false, "送れませんでした。電波を確かめて、もう一度「レビュー完了」を押してください（コメントはこのブラウザに残っています）。"); }
+  sendBtn.disabled = false; sendBtn.querySelector(".lbl").textContent = "レビュー完了";
 };
-
-// ---- コメント一覧
-function render() {
-  list.innerHTML = "";
-  document.getElementById("count").textContent = items.length ? items.length + " 件" : "まだコメントはありません";
-  items.forEach((it, i) => {
-    const li = document.createElement("li");
-    const t = document.createElement("span"); t.className = "t"; t.textContent = fmt(it.t);
-    if (it.d) { const m = document.createElement("small"); m.textContent = "✎"; m.title = "描き込みあり"; t.append(m); }
-    if (it.images && it.images.length) { const m = document.createElement("small"); m.textContent = "🖼" + it.images.length; m.title = "画像あり"; t.append(m); }
-    if (it.sent) { const m = document.createElement("span"); m.className = "sent"; m.textContent = "✓"; m.title = "送信済み"; t.append(m); }
-    t.onclick = () => { if (pinned !== null) unpin(); P.seek(it.t); P.pause(); setTimeout(() => { P.pause(); shown = it.d || null; drawInk(); }, 300); };
-    const c = document.createElement("span"); c.className = "c"; c.contentEditable = "true"; c.textContent = it.text;
-    c.onblur = () => { const nt = c.textContent.trim(); if (nt !== it.text) { it.text = nt; it.sent = false; save(); stateText(); } };
-    const del = document.createElement("button"); del.className = "del"; del.textContent = "×"; del.title = "消す";
-    del.onclick = () => { items.splice(i, 1); save(); render(); };
-    li.append(t, c, del); list.append(li);
-  });
-  stateText();
-}
-function asText() {
+function asText() {          // コピーする文の形は v1.7 までと同じ（受け取る側の道具が読む）
   const who = nameEl.value.trim();
   const head = "【" + (TITLE || VID) + "】確認コメント " + items.length + "件" + (who ? "（" + who + "）" : "");
   const ovt = (overall.text || "").trim();
   const top = ovt || overall.images.length ? ["【全体修正】", ovt + (overall.images.length ? "（画像 " + overall.images.length + " 枚。送信で届きます）" : ""), "ーーーーー"] : [];
-  return [head].concat(top, items.map(it => fmt(it.t) + " " + it.text + (it.sec ? "　（区間：" + it.sec + "）" : "") + (it.images && it.images.length ? "　（画像 " + it.images.length + " 枚）" : "") + (it.d ? "\n　✎ @" + it.t.toFixed(2) + " " + inkDesc(it.d) : ""))).join("\n");
+  return [head].concat(top, items.map(it => fmt(it.t) + " " + it.text.replace(/\n/g, "\n　") + (it.sec ? "　（区間：" + it.sec + "）" : "") + (it.images && it.images.length ? "　（画像 " + it.images.length + " 枚）" : "") + (it.d ? "\n　✎ @" + it.t.toFixed(2) + " " + inkDesc(it.d) : ""))).join("\n");
 }
-document.getElementById("copy").onclick = async () => {
-  const txt = asText();
-  try { await navigator.clipboard.writeText(txt); toast("コピーしました。送ってください"); }
-  catch (e) { const ta = document.createElement("textarea"); ta.value = txt; document.body.append(ta); ta.select(); document.execCommand("copy"); ta.remove(); toast("コピーしました"); }
+async function copyText(txt) {
+  try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(txt); return true; } } catch (e) {}
+  try {
+    const ta = document.createElement("textarea"); ta.value = txt; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;";
+    document.body.append(ta); ta.select(); ta.setSelectionRange(0, txt.length);
+    const ok = document.execCommand("copy"); ta.remove(); return !!ok;
+  } catch (e) { return false; }
+}
+copyBtn.onclick = async () => {
+  if (!items.length && !(overall.text || "").trim()) { showResult(false, "まだコピーするコメントがありません"); return; }
+  const txt = asText(), cb = $("copyBox");
+  if (await copyText(txt)) {
+    cb.hidden = true;
+    showResult(true, "コピーしました。メッセージに貼り付けて相手に送ってください");
+    toast("コピーしました。メッセージに貼り付けて相手に送ってください", 2600);
+  } else {           // 失敗した時は成功と言わない。文を見せて、手で選んでもらう
+    cb.value = txt; cb.hidden = false; cb.style.height = Math.min(320, 40 + txt.split("\n").length * 24) + "px";
+    showResult(false, "コピーできませんでした。下の枠の文を長押し（パソコンはクリックして ⌘A／Ctrl+A）で全部選んで、コピーしてください");
+    cb.focus(); cb.select();
+  }
 };
-document.getElementById("dl").onclick = () => {
+$("dl").onclick = () => {
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([asText()], { type: "text/plain" }));
   a.download = "確認コメント_" + (TITLE || VID) + ".txt"; a.click(); toast("ダウンロードに保存しました");
 };
 let armed = false;
-document.getElementById("clear").onclick = (e) => {      // 確認は2回押し（ブラウザの確認画面を使わない）
-  if (!armed) { armed = true; e.target.textContent = "もう一度押すと全部消えます"; setTimeout(() => { armed = false; e.target.textContent = "全部消す"; }, 3000); return; }
-  items = []; save(); render(); armed = false; e.target.textContent = "全部消す";
+$("clear").onclick = e => {      // 確認は2回押し（ブラウザの確認画面を使わない）
+  const b = e.currentTarget;
+  if (!armed) { armed = true; b.textContent = "もう一度押すと全部消えます"; setTimeout(() => { armed = false; b.textContent = "コメントを全部消す"; }, 3000); return; }
+  items = []; save(); render(); armed = false; b.textContent = "コメントを全部消す"; toast("コメントを全部消しました");
 };
+
+// ---- コメント一覧（時刻を押すとその場面へ。「直す」で書き直し、「消す」は2回押し）
+function render() {
+  list.innerHTML = "";
+  const pass = it => filt === "all" || (filt === "unsent" && !it.sent) || (filt === "ink" && it.d) || (filt === "img" && it.images && it.images.length);
+  const shownN = items.filter(pass).length;
+  $("count").textContent = !items.length ? "" : filt === "all" ? items.length + " 件" : shownN + " / " + items.length + " 件";
+  $("empty").hidden = !!shownN;
+  $("empty").textContent = items.length ? "この条件のコメントはありません" : "まだコメントはありません。直したい場面で「この場面にコメント」を押してください。";
+  items.forEach((it, i) => {
+    if (!pass(it)) return;
+    const li = document.createElement("li"); if (it.sent) li.className = "sentrow";
+    const t = document.createElement("button"); t.className = "tbtn"; t.textContent = fmt(it.t); t.setAttribute("aria-label", fmt(it.t) + " の場面へ");
+    t.onclick = () => { if (!canTime()) { toast("動画の読み込みを待ってください"); return; } if (pinned !== null) unpin(false); P.seek(it.t); P.pause(); setTimeout(() => { P.pause(); shown = it.d || null; drawInk(); }, 300); };
+    const c = document.createElement("div"); c.className = "ctext"; c.textContent = it.text;
+    const bd = document.createElement("div"); bd.className = "badges";
+    const badge = (txt, cls) => { const s = document.createElement("span"); s.className = "badge" + (cls ? " " + cls : ""); s.textContent = txt; bd.append(s); };
+    if (it.sec) badge(it.sec);
+    if (it.d) badge("描き込み");
+    if (it.images && it.images.length) badge("画像 " + it.images.length);
+    if (RECEIVER) badge(it.sent ? "✓ 送信済み" : "未送信", it.sent ? "ok" : "wait");
+    const acts = document.createElement("div"); acts.className = "acts";
+    const ed = document.createElement("button"); ed.className = "btn quiet"; ed.textContent = "直す";
+    const del = document.createElement("button"); del.className = "btn danger"; del.textContent = "消す";
+    let delArmed = false;
+    del.onclick = () => {
+      if (!delArmed) { delArmed = true; del.textContent = "もう一度で消す"; setTimeout(() => { delArmed = false; del.textContent = "消す"; }, 3000); return; }
+      items.splice(i, 1); save(); render(); toast("コメントを消しました");
+    };
+    ed.onclick = () => {
+      const w = document.createElement("div"); w.className = "edit";
+      const ta = document.createElement("textarea"); ta.value = it.text; ta.setAttribute("aria-label", "コメントを直す");
+      const row = document.createElement("div"); row.className = "acts"; row.style.marginTop = "6px";
+      const ok = document.createElement("button"); ok.className = "btn line"; ok.textContent = "保存";
+      const no = document.createElement("button"); no.className = "btn quiet"; no.textContent = "やめる";
+      row.append(no, ok); w.append(ta, row);
+      c.hidden = true; acts.hidden = true; li.append(w); ta.focus();
+      no.onclick = () => render();
+      ok.onclick = () => {
+        const nt = ta.value.trim();
+        if (!nt) { toast("空にはできません。消す時は「消す」を押してください"); return; }
+        if (nt !== it.text) { it.text = nt; it.sent = false; save(); toast("直しました"); }
+        render();
+      };
+    };
+    acts.append(ed, del);
+    li.append(t, c, bd, acts); list.append(li);
+  });
+  updState();
+}
+
 // ---- 描き込み（止めた画面に矢印・丸・文字など）。位置は動画の絵に対する割合（0〜1）で持つ。
 // YouTube の絵はページから画像にできない（ブラウザの決まり）ので、残すのは形と位置だけ。受け取った側で同じ時刻の絵に重ねる。
-const ink = document.getElementById("ink"), ictx = ink.getContext("2d"), vwrap = document.querySelector(".vwrap");
-const inkText = document.getElementById("inkText"), drawBar = document.getElementById("draw");
+const ink = $("ink"), ictx = ink.getContext("2d"), vwrap = document.querySelector(".vwrap");
+const inkText = $("inkText"), drawBar = $("draw");
 const COLORS = { y: "#f2d33a", r: "#ff4d4d", w: "#ffffff" }, CNAME = { y: "黄", r: "赤", w: "白" };
 const KIND = { p: "線", a: "矢印", r: "四角", o: "丸", t: "文字" };
 let tool = "a", color = "y", shapes = [], shown = null, live = null, textAt = null;
@@ -512,7 +936,7 @@ function drawInk() {
   arr.forEach(sh => drawShape(ictx, sh, r)); if (live) drawShape(ictx, live, r);
 }
 function inkMode(on) {
-  drawBar.hidden = !on; ink.classList.toggle("on", on);
+  ink.classList.toggle("on", on);
   if (!on) { shapes = []; live = null; closeText(false); }
   markBar(); drawInk();
 }
@@ -552,7 +976,7 @@ function endStroke() {
   if (sh.k === "p") sh.pts = simplify(sh.pts);
   const a = sh.pts[0], b = sh.pts[sh.pts.length - 1];
   const ok = sh.k === "p" ? sh.pts.length > 1 : Math.hypot(b[0] - a[0], b[1] - a[1]) > 0.012;
-  if (ok) shapes.push(sh); drawInk();
+  if (ok) shapes.push(sh); drawInk(); refreshComposer();
 }
 ink.addEventListener("pointerup", endStroke); ink.addEventListener("pointercancel", () => { live = null; drawInk(); });
 function openText(q, e) {
@@ -564,7 +988,7 @@ function openText(q, e) {
 function closeText(keep) {
   if (inkText.hidden) return;
   const v = inkText.value.trim(); inkText.hidden = true;
-  if (keep && v && textAt && pinned !== null) { shapes.push({ k: "t", c: color, pts: [textAt], s: v }); drawInk(); }
+  if (keep && v && textAt && pinned !== null) { shapes.push({ k: "t", c: color, pts: [textAt], s: v }); drawInk(); refreshComposer(); }
   textAt = null;
 }
 inkText.addEventListener("keydown", e => {
@@ -575,14 +999,77 @@ inkText.addEventListener("keydown", e => {
 inkText.addEventListener("blur", () => closeText(true));
 drawBar.querySelectorAll("[data-tool]").forEach(b => b.onclick = () => { tool = b.dataset.tool; markBar(); b.blur(); });
 drawBar.querySelectorAll("[data-color]").forEach(b => b.onclick = () => { color = b.dataset.color; markBar(); b.blur(); });
-document.getElementById("undo").onclick = e => { shapes.pop(); drawInk(); e.currentTarget.blur(); };
-document.getElementById("wipe").onclick = e => { shapes = []; drawInk(); e.currentTarget.blur(); };
+$("undo").onclick = e => { shapes.pop(); drawInk(); refreshComposer(); e.currentTarget.blur(); };
+$("wipe").onclick = e => { shapes = []; drawInk(); refreshComposer(); e.currentTarget.blur(); };
 new ResizeObserver(fitInk).observe(vwrap);
 markBar();
 
-const secs = document.getElementById("secs");
-SECTIONS.forEach(sc => { const b = document.createElement("button"); b.textContent = sc.name + " " + fmt(sc.t); b.onclick = () => P.seek(sc.t); secs.append(b); });
-render();
+const secs = $("secs");
+SECTIONS.forEach(sc => {
+  const b = document.createElement("button"); b.className = "chip"; b.textContent = sc.name + " " + fmt(sc.t); b.onclick = () => moveTo(sc.t); secs.append(b);
+  const s2 = document.createElement("button"); s2.className = "secbtn"; s2.innerHTML = ""; s2.append(sc.name); const sp = document.createElement("span"); sp.textContent = fmt(sc.t); s2.append(sp);
+  s2.onclick = () => { moveTo(sc.t); closeMenu(); goTo("player"); }; $("sideSecs").append(s2);
+});
+$("secCap").hidden = !SECTIONS.length;
+// ---- Vcheck への要望（動画へのコメントとは別。同じ受け取り口に「vcheck-request」として届く）
+const FEEDBACK_ID = "vcheck-request";
+if (!RECEIVER) $("fbCard").hidden = true;      // 送り先が無いページでは出さない
+$("fbSend").onclick = async () => {
+  const t = $("fbText").value.trim(), b = $("fbSend"), r = $("fbResult");
+  if (!t) { toast("要望を書いてください"); $("fbText").focus(); return; }
+  b.disabled = true; b.textContent = "送信中…";
+  const body = { video: FEEDBACK_ID, title: "Vcheck への要望", name: nameEl.value.trim(),
+    overall: { text: t + "\n（見ていた動画：" + (TITLE || VID) + "／" + (TOUCH ? "スマホ・タブレット" : "パソコン") + "／Vcheck v1.9.0）", images: [] }, items: [] };
+  try {
+    const res = await fetch(RECEIVER, { method: "POST", body: JSON.stringify(body) });
+    const j = await res.json(); if (!j.ok) throw new Error("ng");
+    $("fbText").value = ""; r.hidden = false; r.className = "result ok"; r.textContent = "送りました。ありがとうございます";
+  } catch (e) { r.hidden = false; r.className = "result ng"; r.textContent = "送れませんでした。電波を確かめて、もう一度押してください"; }
+  b.disabled = false; b.textContent = "要望を送る";
+};
+
+// ---- 画面の作り（左のメニュー・名前・題の下の情報・丸いボタン・絞り込み）
+let filt = "all";
+function updMeta(unsent) {
+  if (unsent === undefined) unsent = items.filter(it => !it.sent).length + ovPending();
+  const parts = [];
+  if (canTime() && P.d()) parts.push("長さ " + fmt(P.d()));
+  parts.push("コメント " + items.length + " 件");
+  if (RECEIVER) parts.push(unsent ? "未送信 " + unsent + " 件" : (items.length ? "すべて送信済み" : ""));
+  else if (items.length) parts.push("このブラウザに保存済み");
+  const m = $("meta"); if (m) { m.innerHTML = ""; parts.filter(Boolean).forEach(t => { const sp = document.createElement("span"); sp.textContent = t; m.append(sp); }); }
+  const n = $("unsentN"); n.hidden = !unsent; n.textContent = unsent;
+}
+function goTo(id) {
+  const el = $(id); if (!el) return;
+  const off = innerWidth <= 1000 ? (id === "player" ? 0 : $("player").offsetHeight + 8) : ($("search") ? document.querySelector(".top").offsetHeight + 12 : 12);
+  const top = id === "player" && innerWidth <= 1000 ? 0 : el.getBoundingClientRect().top + scrollY - off;
+  scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  document.querySelectorAll(".side a").forEach(a => a.classList.toggle("on", a.dataset.go === id));
+}
+function closeMenu() { document.body.classList.remove("menu"); $("scrim").hidden = true; }
+$("menuBtn").onclick = () => { const on = !document.body.classList.contains("menu"); document.body.classList.toggle("menu", on); $("scrim").hidden = !on; };
+$("scrim").onclick = closeMenu;
+document.querySelectorAll(".side a[data-go]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); closeMenu(); goTo(a.dataset.go); }));
+function openHow() { $("more").open = true; closeMenu(); setTimeout(() => goTo("howBox"), 30); }
+function openMore() { $("more").open = true; closeMenu(); goTo("more"); }
+$("navHow").onclick = openHow; $("howBtn").onclick = openHow;
+$("navMore").onclick = openMore; $("moreBtn").onclick = openMore;
+$("logo").onclick = e => { e.preventDefault(); scrollTo({ top: 0, behavior: "smooth" }); };
+$("toReturnLabel").textContent = RECEIVER ? "レビュー完了" : "コメントを全てコピー";
+$("toReturnIcon").innerHTML = RECEIVER ? '<svg class="i" viewBox="0 0 24 24"><path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5L3 9.5z"/></svg>' : '<svg class="i" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="3"/><path d="M15.5 8.5V6.5a3 3 0 0 0-3-3h-6a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h2"/></svg>';
+$("toReturn").onclick = () => (RECEIVER ? sendBtn : copyBtn).click();
+$("ytOpen").href = "https://www.youtube.com/watch?v=" + VID;
+$("shareBtn").onclick = async () => { toast(await copyText(location.href) ? "このページのリンクをコピーしました。確認してほしい人に送れます" : "リンクをコピーできませんでした。アドレス欄から長押しでコピーしてください", 2600); };
+function showName() { const v = nameEl.value.trim(); $("avatar").textContent = v ? v.slice(0, 1) : "?"; $("chipName").textContent = v || "名前を入れる"; }
+nameEl.addEventListener("input", showName);
+$("nameChip").onclick = () => { goTo("returnCard"); setTimeout(() => nameEl.focus({ preventScroll: true }), 350); };
+document.querySelectorAll("#filters .chip").forEach(c => c.onclick = () => {
+  filt = c.dataset.f; document.querySelectorAll("#filters .chip").forEach(x => x.setAttribute("aria-pressed", String(x === c))); render();
+});
+showName();
+setInterval(() => updMeta(), 2000);   // 長さが分かったら題の下に出す
+booted = true; render(); refreshComposer();
 </script>
 </body>
 </html>
