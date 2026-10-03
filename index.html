@@ -145,9 +145,10 @@ a.act { text-decoration:none; }
 .act { display:flex; flex-direction:column; align-items:center; gap:4px; border:none; background:none; color:var(--sub); font-size:11px; font-weight:700; min-width:48px; padding:0; }
 .act span.c { width:44px; height:44px; border-radius:50%; background:var(--bg2); display:grid; place-items:center; color:var(--ink); }
 .act:hover span.c { background:#E9EDEF; }
-.flow { display:flex; flex-wrap:wrap; gap:6px; margin:0; padding:0; list-style:none; font-size:13px; font-weight:700; }
-.flow li { display:flex; align-items:center; gap:6px; border:1px solid var(--line); border-radius:999px; padding:3px 12px 3px 4px; }
-.flow b { display:inline-grid; place-items:center; width:20px; height:20px; border-radius:50%; background:var(--teal-ink); color:#fff; font-size:12px; }
+/* 使い方：3つの手順を同じ大きさの札で横に */
+.flow { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; margin:0; padding:0; list-style:none; font-size:14px; font-weight:700; color:var(--ink); }
+.flow li { display:flex; align-items:center; gap:10px; border:1px solid var(--line); border-radius:12px; padding:10px 12px; background:var(--bg2); line-height:1.4; }
+.flow b { flex:none; display:grid; place-items:center; width:26px; height:26px; border-radius:50%; background:var(--teal-ink); color:#fff; font-size:14px; }
 .btnrow { grid-column:1 / -1; display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; }
 
 /* カード（白・細い線） */
@@ -179,10 +180,28 @@ details > summary { cursor:pointer; font-weight:700; min-height:44px; display:fl
 details > summary::-webkit-details-marker { display:none; }
 details > summary::before { content:"▸"; color:var(--teal-ink); transition:transform .15s; }
 details[open] > summary::before { transform:rotate(90deg); }
-.how ul { margin:4px 0 0; padding-left:1.2em; font-size:14px; color:var(--sub); }
-.how li { padding:2px 0; } .how b { color:var(--ink); }
-.more .grp { border-top:1px solid var(--line); padding:10px 0 2px; }
-.more .grp h3 { font-size:13px; margin:0 0 8px; color:var(--sub); }
+.more > summary .sum2 { font-size:12px; font-weight:600; color:var(--sub); margin-left:4px; }
+.more .grp { border-top:1px solid var(--line); padding:14px 0 12px; }
+.more .grp h3 { font-size:14px; margin:0 0 10px; color:var(--ink); font-weight:800; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+.more .h3s { font-size:12px; font-weight:600; color:var(--sub); }
+/* 書き方：左にやりたいこと、右に書き方（太字）と小さな補足 */
+.ex { display:grid; grid-template-columns:8.5em minmax(0,1fr); gap:8px 16px; margin:0; font-size:14px; line-height:1.5; }
+.ex dt { color:var(--sub); font-weight:600; }
+.ex dd { margin:0; color:var(--ink); text-spacing-trim:trim-start; font-feature-settings:"palt"; }   /* 「 で始まる行の頭をそろえる */
+.nw { white-space:nowrap; }
+.ex dd b { font-weight:800; }
+.ex small { display:inline-block; margin-left:8px; font-size:12px; color:var(--sub); }
+.tips { margin-top:12px; padding:10px 12px; border-radius:10px; background:var(--tint); display:flex; flex-direction:column; gap:6px; }
+.tips p { margin:0; font-size:13px; color:var(--ink); line-height:1.5; }
+.tips .tag { display:inline-block; font-size:11px; font-weight:800; color:#fff; background:var(--teal-ink); border-radius:4px; padding:1px 6px; margin-right:8px; vertical-align:1px; }
+/* 下：コマ送り と キーボード を横に2つ */
+.mcols { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); column-gap:28px; border-top:1px solid var(--line); }
+.mcols .grp { border-top:none; }
+.btn.sm { min-height:36px; padding:4px 14px; font-size:13px; }
+.kmap { display:grid; grid-template-columns:auto minmax(0,1fr); gap:6px 14px; margin:0; font-size:13px; align-items:center; }
+.kmap dt { white-space:nowrap; color:var(--sub); }
+.kmap dd { margin:0; color:var(--ink); }
+.more kbd { font-family:inherit; font-size:12px; border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:1px 6px; background:#fff; color:var(--ink); }
 .more .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
 .draw { border-top:1px solid var(--line); margin-top:10px; padding-top:10px; }
 .draw .row { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
@@ -312,6 +331,14 @@ details[open] > summary::before { transform:rotate(90deg); }
   .vwrap { max-height:none; }
 }
 @media (max-width: 600px) {
+  .flow { grid-template-columns:1fr; }
+  .ex { grid-template-columns:1fr; gap:2px; }
+  .ex dt { font-size:12px; margin-top:8px; }
+  .ex dt:first-child { margin-top:0; }
+  .ex small { display:block; margin:2px 0 0; }
+  .mcols { grid-template-columns:1fr; }
+  .more > summary .sum2 { display:none; }
+  .btn.sm { min-height:44px; }
   .sendrow .btn { flex:1 1 auto; }   /* スマホは2段に分かれても幅いっぱいに */
   .emo { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }   /* スマホは1段で横に流す（キーボードがあっても入力欄が隠れない） */
   .emo::-webkit-scrollbar { display:none; }
@@ -441,44 +468,51 @@ details[open] > summary::before { transform:rotate(90deg); }
 
 
     <details class="card more" id="more">
-      <summary>使い方と詳しい操作（書き方の例・コマ送り）</summary>
-      <div class="grp">
-        <h3>使い方（3つの手順）</h3>
+      <summary>使い方と詳しい操作<span class="sum2">書き方の例・コマ送り・キーボード</span></summary>
+      <section class="grp">
+        <h3>使い方</h3>
         <ol class="flow" id="flow">
-          <li><b>1</b>動画を再生</li>
-          <li><b>2</b>直したい場面で「この場面にコメント」</li>
+          <li><b>1</b><span>動画を再生</span></li>
+          <li><b>2</b><span>直したい場面で<span class="nw">「この場面にコメント」</span></span></li>
           <li><b>3</b><span id="flow3">終わったら「レビュー完了」</span></li>
         </ol>
-      </div>
-      <div class="grp how" id="howBox">
-        <h3>伝わりやすい書き方の例</h3>
-        <ul>
-          <li>字幕の文字を直す：<b>「子守」→「子守り」</b>（今の文字 → 直した文字）</li>
-          <li>声ごと切る：<b>「なんか」音声ごとカット</b></li>
-          <li>字幕だけ消す：<b>字幕の「じゃあ」だけ消す</b>（声は残る）</li>
-          <li>長く切る：<b>「じゃあこれ伝わると」〜「バズらせてください」までカット</b>（始めと終わりの言葉）</li>
-          <li>場所を動かす：<b>この話をおまけの1番目へ</b></li>
-          <li>足す・変える：<b>ポイントを「鍛えれば変身できるところが好き」に</b></li>
-          <li>見た目：画面に矢印や丸を描いて <b>このテロップをもう少し上に</b></li>
-          <li>理由を一言：<b>（視聴者目線を読みすぎ）</b>と添えると、ほかの場面も同じ考えで直せます</li>
-          <li>決まりごと：<b>今後も</b>か<b>今回だけ</b>を書く。時刻のないことは「全体修正」へ</li>
-        </ul>
-      </div>
-      <div class="grp">
-        <h3>コマ送り（止めた状態で1コマずつ）</h3>
-        <div class="row">
-          <button class="btn" id="b1">‹ 1コマ戻る</button>
-          <button class="btn" id="f1">1コマ進む ›</button>
+      </section>
+      <section class="grp how" id="howBox">
+        <h3>伝わりやすい書き方</h3>
+        <dl class="ex">
+          <dt>字幕の文字を直す</dt><dd><b>「子守」→「子守り」</b><small>今の文字 → 直した文字</small></dd>
+          <dt>声ごと切る</dt><dd><b>「なんか」音声ごとカット</b></dd>
+          <dt>字幕だけ消す</dt><dd><b>字幕の「じゃあ」だけ消す</b><small>声は残る</small></dd>
+          <dt>長く切る</dt><dd><b>「じゃあこれ伝わると」〜「バズらせてください」までカット</b><small>始めと終わりの言葉</small></dd>
+          <dt>場所を動かす</dt><dd><b>この話をおまけの1番目へ</b></dd>
+          <dt>足す・変える</dt><dd><b>ポイントを「鍛えれば変身できるところが好き」に</b></dd>
+          <dt>見た目</dt><dd><b>このテロップをもう少し上に</b><small>画面に矢印や丸を描いて添える</small></dd>
+        </dl>
+        <div class="tips">
+          <p><span class="tag">コツ</span>理由を一言添えると（例：<b>視聴者目線を読みすぎ</b>）、ほかの場面も同じ考えで直せます</p>
+          <p><span class="tag">コツ</span><b>今後も</b>か<b>今回だけ</b>かを書く。時刻のないことは「全体修正」へ</p>
         </div>
-      </div>
-      <div class="grp" id="kbd">
-        <h3>キーボード（パソコン）</h3>
-        <p class="keys"><kbd>スペース</kbd> 再生・停止　<kbd>←</kbd><kbd>→</kbd> 1コマ　<kbd>Shift</kbd>＋<kbd>←</kbd><kbd>→</kbd> 5秒<br>
-          <kbd>Enter</kbd> この場面にコメント（書いている時は追加）　<kbd>Shift</kbd>＋<kbd>Enter</kbd> 改行　<kbd>Esc</kbd> やめる</p>
-      </div>
-      <div class="grp" id="micNote" hidden>
-        <h3>声で入れる</h3>
-        <p class="keys">マイクのアイコンを押して話すと、声が文字になります（Chrome・Edge・Safari。Brave では使えません）。声はブラウザの音声認識（Google や Apple）に送られます。</p>
+      </section>
+      <div class="mcols">
+        <section class="grp">
+          <h3>コマ送り<span class="h3s">止めた状態で1コマずつ</span></h3>
+          <div class="row"><button class="btn sm" id="b1">‹ 1コマ戻る</button><button class="btn sm" id="f1">1コマ進む ›</button></div>
+          <div id="micNote" hidden>
+            <h3 style="margin-top:14px">声で入れる</h3>
+            <p class="keys">マイクのアイコンを押して話すと、文字になります（Chrome・Edge・Safari。Brave では使えません）。声はブラウザの音声認識（Google や Apple）に送られます。</p>
+          </div>
+        </section>
+        <section class="grp" id="kbd">
+          <h3>キーボード（パソコン）</h3>
+          <dl class="kmap">
+            <dt><kbd>スペース</kbd></dt><dd>再生・停止</dd>
+            <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>1コマ戻る・進む</dd>
+            <dt><kbd>Shift</kbd>＋<kbd>←</kbd> <kbd>→</kbd></dt><dd>5秒戻る・進む</dd>
+            <dt><kbd>Enter</kbd></dt><dd>この場面にコメント（書いている時は追加）</dd>
+            <dt><kbd>Shift</kbd>＋<kbd>Enter</kbd></dt><dd>改行</dd>
+            <dt><kbd>Esc</kbd></dt><dd>やめる</dd>
+          </dl>
+        </section>
       </div>
     </details>
   </main>
@@ -543,7 +577,7 @@ details[open] > summary::before { transform:rotate(90deg); }
   </aside>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="ver">Vcheck 動画確認ページ v1.14.0</div>
+<div class="ver">Vcheck 動画確認ページ v1.15.0</div>
 <input type="file" id="pick" accept="image/*" multiple hidden>
 <script>
 // Vcheck 動画確認ページ（版はいちばん下の .ver と VER）
@@ -1100,7 +1134,7 @@ SECTIONS.forEach(sc => {
 });
 $("secCap").hidden = !SECTIONS.length;
 // ---- Vcheck への要望（動画へのコメントとは別。同じ受け取り口に「vcheck-request」として届く）
-const FEEDBACK_ID = "vcheck-request", VER = "1.14.0";
+const FEEDBACK_ID = "vcheck-request", VER = "1.15.0";
 if (!RECEIVER) $("fbArea").hidden = true;      // 送り先が無いページでは出さない
 $("navFb").onclick = () => {
   const wasMini = WIDE() && document.body.classList.contains("mini");
