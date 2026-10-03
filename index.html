@@ -184,7 +184,11 @@ details[open] > summary::before { transform:rotate(90deg); }
 .draw .row + .row { margin-top:8px; }
 .draw .btn { padding:6px 8px; gap:3px; font-size:13px; }
 .draw .btn svg.i { width:18px; height:18px; }
-#drawOpen.on { background:var(--tint); color:var(--teal-deep); }
+#drawOpen.on, #emo.on { background:var(--tint); color:var(--teal-deep); }
+/* 絵文字：押すと入力欄のカーソルの所に入る */
+.emo { display:flex; flex-wrap:wrap; gap:2px; padding:6px 0 2px; margin-top:6px; border-top:1px solid var(--line); }
+.emo button { width:40px; height:40px; border:none; background:none; border-radius:10px; font-size:22px; line-height:1; display:grid; place-items:center; padding:0; }
+.emo button:hover { background:var(--bg2); }
 .draw .dot { width:44px; height:44px; border-radius:50%; padding:0; border:3px solid #fff; box-shadow:0 0 0 1.5px var(--line); background:var(--c); }
 .draw .dot.on { box-shadow:0 0 0 3px var(--navy); }
 .keys { font-size:13px; color:var(--sub); margin:0; }
@@ -293,6 +297,9 @@ details[open] > summary::before { transform:rotate(90deg); }
   .vwrap { max-height:none; }
 }
 @media (max-width: 600px) {
+  .emo { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }   /* スマホは1段で横に流す（キーボードがあっても入力欄が隠れない） */
+  .emo::-webkit-scrollbar { display:none; }
+  .emo button { flex:none; }
   .top { padding:0 8px; gap:4px; }
   .logo small { display:none; }
   .me .nm { display:none; }
@@ -472,9 +479,11 @@ details[open] > summary::before { transform:rotate(90deg); }
       <div class="when"><span class="stamp" id="stamp" hidden></span><span id="whenNote">「この場面にコメント」をクリックしてください</span></div>
       <div class="cbox">
         <textarea id="box" rows="3" placeholder="修正してほしい内容" autocomplete="off" enterkeyhint="enter" aria-label="コメント"></textarea>
+        <div class="emo" id="emoPick" role="group" aria-label="絵文字を入れる" hidden></div>
         <div class="cbar">
           <button class="ic" id="att" aria-label="画像を付ける" title="画像を付ける"><svg class="i" viewBox="0 0 24 24"><path d="M21.4 11.1l-9.2 9.2a6 6 0 01-8.5-8.5l9.2-9.2a4 4 0 015.7 5.7l-9.2 9.2a2 2 0 01-2.8-2.8l8.5-8.5"/></svg><span class="dotn" id="attN" hidden></span></button>
           <button class="ic" id="drawOpen" aria-label="画面に描く" title="画面に描く"><svg class="i" viewBox="0 0 24 24"><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
+          <button class="ic" id="emo" aria-label="絵文字" title="絵文字" aria-expanded="false" aria-controls="emoPick"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.3 14.2a4.6 4.6 0 007.4 0"/><path d="M9.2 9.6h.01M14.8 9.6h.01" stroke-width="2.6"/></svg></button>
           <span class="stamp mini" id="stamp2" aria-hidden="true"></span>
           <span class="grow"></span>
           <button class="ic" id="mic" aria-label="声で入れる" title="声で入れる" hidden><svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button>
@@ -524,7 +533,7 @@ details[open] > summary::before { transform:rotate(90deg); }
   </aside>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="ver">Vcheck 動画確認ページ v1.11.0</div>
+<div class="ver">Vcheck 動画確認ページ v1.12.0</div>
 <input type="file" id="pick" accept="image/*" multiple hidden>
 <script>
 // Vcheck 動画確認ページ v1.10.0（パソコンはコメント欄を右上に。左のバーは使い方と要望だけ）
@@ -622,7 +631,7 @@ function pin() {
 }
 function unpin(resume) {
   if (listening && rec) { try { rec.abort(); } catch (e) {} }
-  box.value = ""; fitBox(); pinned = null; pendImgs = []; showPend(); inkMode(false); showDraw(false); refreshComposer();
+  box.value = ""; fitBox(); pinned = null; pendImgs = []; showPend(); inkMode(false); showDraw(false); showEmo(false); refreshComposer();
   box.blur(); if (resume) P.play();
 }
 function hasDraft() { return !!(box.value.trim() || shapes.length || pendImgs.length); }
@@ -666,7 +675,7 @@ function scrollToComposer() {
 $("write").onclick = () => { if (pinned === null && !pin()) return; box.focus({ preventScroll: true }); scrollToComposer(); };
 $("add").onclick = () => commit();
 $("cancel").onclick = () => unpin(false);
-["add", "cancel", "att", "mic", "drawOpen"].forEach(id => $(id).addEventListener("mousedown", e => e.preventDefault()));   // 押しても入力欄から外れない
+["add", "cancel", "att", "mic", "drawOpen", "emo"].forEach(id => $(id).addEventListener("mousedown", e => e.preventDefault()));   // 押しても入力欄から外れない
 box.addEventListener("input", () => { if (pinned === null && canTime()) pin(); fitBox(); refreshComposer(); });
 box.addEventListener("focus", () => { document.body.classList.add("typing"); if (pinned === null && canTime() && TOUCH) pin(); setTimeout(scrollToComposer, 250); });
 box.addEventListener("blur", () => setTimeout(() => { if (document.activeElement !== box) document.body.classList.remove("typing"); }, 250));
@@ -675,6 +684,21 @@ box.addEventListener("keydown", e => {
   if (e.key === "Escape") { e.stopPropagation(); unpin(false); return; }
   if (e.key === "Enter" && !e.shiftKey && !TOUCH) { e.preventDefault(); e.stopPropagation(); commit(); }   // スマホの Enter は改行
 });
+// ---- 絵文字（よく使う 👍 を先頭に）
+const EMOJI = ["👍", "👏", "🙏", "😊", "😂", "🤔", "😢", "❤️", "✨", "🔥", "👀", "💡", "⭕", "❌", "⚠️", "❗"];
+EMOJI.forEach(em => {
+  const b = document.createElement("button"); b.type = "button"; b.textContent = em; b.setAttribute("aria-label", em);
+  b.addEventListener("mousedown", e => e.preventDefault()); b.onclick = () => putEmoji(em); $("emoPick").append(b);
+});
+function showEmo(on) { $("emoPick").hidden = !on; $("emo").classList.toggle("on", on); $("emo").setAttribute("aria-expanded", String(on)); }
+$("emo").onclick = () => showEmo($("emoPick").hidden);
+function putEmoji(em) {
+  const a = box.selectionStart ?? box.value.length, z = box.selectionEnd ?? a;
+  box.value = box.value.slice(0, a) + em + box.value.slice(z);
+  box.focus({ preventScroll: true }); box.setSelectionRange(a + em.length, a + em.length);
+  box.dispatchEvent(new Event("input", { bubbles: true }));    // 書いた時と同じ：時刻が入っていなければ今の場面で止める
+  showEmo(false);
+}
 function showDraw(on) { $("draw").hidden = !on; $("drawOpen").classList.toggle("on", on); $("drawOpen").setAttribute("aria-pressed", String(on)); }
 $("drawOpen").onclick = () => {
   if (!$("draw").hidden) { showDraw(false); return; }
@@ -1065,7 +1089,7 @@ SECTIONS.forEach(sc => {
 });
 $("secCap").hidden = !SECTIONS.length;
 // ---- Vcheck への要望（動画へのコメントとは別。同じ受け取り口に「vcheck-request」として届く）
-const FEEDBACK_ID = "vcheck-request", VER = "1.11.0";
+const FEEDBACK_ID = "vcheck-request", VER = "1.12.0";
 if (!RECEIVER) $("fbArea").hidden = true;      // 送り先が無いページでは出さない
 $("navFb").onclick = () => {
   const wasMini = WIDE() && document.body.classList.contains("mini");
