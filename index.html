@@ -47,9 +47,8 @@ svg.i { width:22px; height:22px; flex:none; fill:none; stroke:currentColor; stro
 .search { flex:1; max-width:520px; margin:0 auto; display:flex; align-items:center; gap:6px; background:var(--bg2); border-radius:999px; padding:0 6px 0 14px; height:44px; color:var(--sub); }
 .search input { flex:1; min-width:0; border:none; background:none; outline:none; font-size:15px; color:var(--ink); }
 .search button { border:none; background:#fff; color:var(--teal-ink); font-weight:700; border-radius:999px; height:34px; padding:0 14px; }
-.me { margin-left:auto; display:flex; align-items:center; gap:8px; border:none; background:none; border-radius:999px; padding:4px 10px 4px 4px; min-height:44px; flex:none; font-weight:700; font-size:14px; }
-.me:hover { background:var(--bg2); }
-.avatar { width:32px; height:32px; border-radius:50%; display:grid; place-items:center; background:var(--teal-ink); color:#fff; font-size:15px; font-weight:800; }
+.btn.done.hdone { margin-left:auto; flex:none; min-height:40px; padding:4px 16px; font-size:15px; box-shadow:0 2px 6px rgba(150,150,20,.28); }   /* ヘッダー右上のレビュー完了 */
+.hdone svg.i { width:18px; height:18px; }
 
 /* 3列：左のメニュー・真ん中の動画・右のコメント */
 .wrap { display:grid; grid-template-columns:220px minmax(0,1fr) 400px; gap:24px; max-width:1720px; margin:0 auto; padding:0 24px 24px 0; align-items:start; }
@@ -141,6 +140,8 @@ a.btn { text-decoration:none; }
 .info .meta { color:var(--sub); font-size:13px; margin:6px 0 0; font-variant-numeric:tabular-nums; display:flex; flex-wrap:wrap; gap:2px 14px; }
 .info .meta span { white-space:nowrap; }
 .acts3 { display:flex; gap:14px; }
+a.act { text-decoration:none; }
+.act .ytmark { width:24px; height:17px; }
 .act { display:flex; flex-direction:column; align-items:center; gap:4px; border:none; background:none; color:var(--sub); font-size:11px; font-weight:700; min-width:48px; padding:0; }
 .act span.c { width:44px; height:44px; border-radius:50%; background:var(--bg2); display:grid; place-items:center; color:var(--ink); }
 .act:hover span.c { background:#E9EDEF; }
@@ -204,6 +205,7 @@ details[open] > summary::before { transform:rotate(90deg); }
 .why .note { margin:0 0 4px; font-size:13px; color:var(--sub); line-height:1.5; }
 .why > summary { font-size:13px; color:var(--sub); min-height:34px; margin-top:4px; }
 .namefield { margin:10px 0 0; max-width:420px; }
+.namefield .fl b { color:var(--ink); font-weight:800; font-size:15px; margin-right:2px; }
 .ret .band { padding:14px 16px 12px; background:var(--bg2); border-bottom:1px solid var(--line); color:var(--ink); }
 .ret .band h2 { margin:0; font-size:17px; }
 .ret .band p { margin:2px 0 0; font-size:13px; color:var(--sub); }
@@ -315,7 +317,7 @@ details[open] > summary::before { transform:rotate(90deg); }
   .emo::-webkit-scrollbar { display:none; }
   .emo button { flex:none; }
   .top { padding:0 8px; gap:4px; }
-  .me .nm { display:none; }
+  .btn.done.hdone { padding:4px 12px; font-size:14px; min-height:40px; }
   .bar .vol { display:none; }
   .acts3 { gap:6px; }
   .info { grid-template-columns:1fr; }
@@ -336,7 +338,7 @@ details[open] > summary::before { transform:rotate(90deg); }
 }
 @media (min-width: 1001px) {
   #list { max-height:56vh; overflow:auto; padding-right:4px; }
-  #toReturn { display:none; }   /* すぐ下に「レビューが終わったら」があるので二重にしない */
+  .btnrow { display:none; }   /* 題の下の「レビュー完了」はスマホだけ（パソコンはすぐ下とヘッダーにある） */
 }
 </style>
 </head>
@@ -349,7 +351,7 @@ details[open] > summary::before { transform:rotate(90deg); }
     <input id="url" placeholder="YouTube のリンクを貼って、別の動画レビューを作成" autocomplete="off" aria-label="YouTube のリンク">
     <button type="submit" id="go">開く</button>
   </form>
-  <button class="me" id="nameChip" aria-label="コメントに付く名前"><span class="avatar" id="avatar">?</span><span class="nm" id="chipName">名前を入れる</span></button>
+  <button class="btn done hdone" id="topReturn"><span id="topReturnIcon"></span><span id="topReturnLabel">レビュー完了</span> <span class="cnt" id="unsentTop" hidden>0</span></button>
 </header>
 <div class="scrim" id="scrim" hidden></div>
 <div class="wrap">
@@ -409,15 +411,15 @@ details[open] > summary::before { transform:rotate(90deg); }
     <section class="info" id="info">
       <div>
         <h1 id="ttl">（動画の題を読み込み中）</h1>
-        <label class="field namefield">あなたの名前（任意。コメントに付きます）<input id="name" autocomplete="off" placeholder="例：山田"></label>
+        <label class="field namefield"><span class="fl"><b>あなたの名前</b>（任意。コメントに付きます）</span><input id="name" autocomplete="off" placeholder="例：山田"></label>
       </div>
       <div class="acts3">
         <button class="act" id="shareBtn"><span class="c"><svg class="i" viewBox="0 0 24 24"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></svg></span>リンク</button>
         <button class="act" id="howBtn"><span class="c"><svg class="i" viewBox="0 0 24 24"><path d="M4 5h6a2 2 0 012 2v12a2 2 0 00-2-2H4zM20 5h-6a2 2 0 00-2 2v12a2 2 0 012-2h6z"/></svg></span>書き方</button>
         <button class="act" id="moreBtn"><span class="c"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span>詳しい操作</button>
+        <a class="act" id="ytOpen" target="_blank" rel="noopener" aria-label="YouTube で開く" title="YouTube で開く"><span class="c"><svg class="ytmark" viewBox="0 0 28 20" aria-hidden="true"><rect width="28" height="20" rx="5.5" fill="#FF0000"/><path d="M11.2 5.6l7.4 4.4-7.4 4.4z" fill="#FFFFFF"/></svg></span>YouTube</a>
       </div>
       <div class="btnrow">
-        <a class="btn yt" id="ytOpen" target="_blank" rel="noopener"><svg class="ytmark" viewBox="0 0 28 20" aria-hidden="true"><rect width="28" height="20" rx="5.5" fill="#FF0000"/><path d="M11.2 5.6l7.4 4.4-7.4 4.4z" fill="#FFFFFF"/></svg><span>YouTube で開く</span></a>
         <button class="btn done" id="toReturn"><span id="toReturnIcon"></span><span id="toReturnLabel">レビュー完了</span> <span class="cnt" id="unsentN" hidden>0</span></button>
       </div>
     </section>
@@ -541,7 +543,7 @@ details[open] > summary::before { transform:rotate(90deg); }
   </aside>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="ver">Vcheck 動画確認ページ v1.13.0</div>
+<div class="ver">Vcheck 動画確認ページ v1.14.0</div>
 <input type="file" id="pick" accept="image/*" multiple hidden>
 <script>
 // Vcheck 動画確認ページ（版はいちばん下の .ver と VER）
@@ -1098,7 +1100,7 @@ SECTIONS.forEach(sc => {
 });
 $("secCap").hidden = !SECTIONS.length;
 // ---- Vcheck への要望（動画へのコメントとは別。同じ受け取り口に「vcheck-request」として届く）
-const FEEDBACK_ID = "vcheck-request", VER = "1.13.0";
+const FEEDBACK_ID = "vcheck-request", VER = "1.14.0";
 if (!RECEIVER) $("fbArea").hidden = true;      // 送り先が無いページでは出さない
 $("navFb").onclick = () => {
   const wasMini = WIDE() && document.body.classList.contains("mini");
@@ -1128,7 +1130,7 @@ function updMeta(unsent) {
   if (RECEIVER) parts.push(unsent ? "未送信 " + unsent + " 件" : (items.length ? "すべて送信済み" : ""));
   else if (items.length) parts.push("このブラウザに保存済み");
   const m = $("meta"); if (m) { m.innerHTML = ""; parts.filter(Boolean).forEach(t => { const sp = document.createElement("span"); sp.textContent = t; m.append(sp); }); }
-  const n = $("unsentN"); n.hidden = !unsent; n.textContent = unsent;
+  for (const id of ["unsentN", "unsentTop"]) { const n = $(id); n.hidden = !unsent; n.textContent = unsent; }
 }
 function goTo(id) {
   const el = $(id); if (!el) return;
@@ -1161,15 +1163,13 @@ $("logo").onclick = e => { e.preventDefault(); scrollTo({ top: 0, behavior: "smo
 $("toReturnLabel").textContent = RECEIVER ? "レビュー完了" : "コメントを全てコピー";
 $("toReturnIcon").innerHTML = RECEIVER ? '<svg class="i" viewBox="0 0 24 24"><path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5L3 9.5z"/></svg>' : '<svg class="i" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="3"/><path d="M15.5 8.5V6.5a3 3 0 0 0-3-3h-6a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h2"/></svg>';
 $("toReturn").onclick = () => (RECEIVER ? sendBtn : copyBtn).click();
+$("topReturnLabel").textContent = $("toReturnLabel").textContent; $("topReturnIcon").innerHTML = $("toReturnIcon").innerHTML;
+$("topReturn").onclick = () => (RECEIVER ? sendBtn : copyBtn).click();
 $("ytOpen").href = "https://www.youtube.com/watch?v=" + VID;
 $("shareBtn").onclick = async () => { toast(await copyText(location.href) ? "このページのリンクをコピーしました。確認してほしい人に送れます" : "リンクをコピーできませんでした。アドレス欄から長押しでコピーしてください", 2600); };
-function showName() { const v = nameEl.value.trim(); $("avatar").textContent = v ? v.slice(0, 1) : "?"; $("chipName").textContent = v || "名前を入れる"; }
-nameEl.addEventListener("input", showName);
-$("nameChip").onclick = () => { goTo("info"); setTimeout(() => nameEl.focus({ preventScroll: true }), 350); };
 document.querySelectorAll("#filters .chip").forEach(c => c.onclick = () => {
   filt = c.dataset.f; document.querySelectorAll("#filters .chip").forEach(x => x.setAttribute("aria-pressed", String(x === c))); render();
 });
-showName();
 setInterval(() => updMeta(), 2000);   // 長さが分かったら題の下に出す
 booted = true; render(); refreshComposer();
 </script>
