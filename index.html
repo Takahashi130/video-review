@@ -509,7 +509,7 @@ details[open] > summary::before { transform:rotate(90deg); }
   </aside>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="ver">Vcheck 動画確認ページ v1.10.0</div>
+<div class="ver">Vcheck 動画確認ページ v1.10.1</div>
 <input type="file" id="pick" accept="image/*" multiple hidden>
 <script>
 // Vcheck 動画確認ページ v1.10.0（パソコンはコメント欄を右上に。左のバーは使い方と要望だけ）
@@ -665,8 +665,16 @@ $("drawOpen").onclick = () => {
   if (!$("draw").hidden) { showDraw(false); return; }
   if (pinned === null && !pin()) return;
   showDraw(true); if (TOUCH) box.blur();             // スマホはキーボードを下げて、動画の上に描けるようにする
-  setTimeout(() => $("draw").scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+  setTimeout(() => reveal($("composer")), TOUCH ? 350 : 50);   // キーボードが下がって動画が元の大きさに戻ってから
 };
+// コメント欄を、上に貼りついた動画（スマホ）やヘッダーの下に見えるようにする。見えていれば動かさない
+function reveal(el) {
+  const r = el.getBoundingClientRect();
+  const lim = innerWidth <= 1000 ? $("player").getBoundingClientRect().bottom + 8 : document.querySelector(".top").offsetHeight + 8;
+  if (r.top >= lim && r.bottom <= innerHeight - 8) return;
+  if (r.top >= lim && r.height > innerHeight - lim) return;          // 入りきらない高さなら、上が見えていればよい
+  scrollTo({ top: Math.max(0, r.top + scrollY - lim), behavior: "smooth" });
+}
 // キーボードの高さに合わせる（見えている高さを CSS に渡す）
 function vv() { const h = window.visualViewport ? visualViewport.height : innerHeight; document.documentElement.style.setProperty("--vvh", h + "px"); }
 vv(); if (window.visualViewport) visualViewport.addEventListener("resize", () => { vv(); if (document.body.classList.contains("typing")) scrollToComposer(); });
@@ -1038,7 +1046,7 @@ SECTIONS.forEach(sc => {
 });
 $("secCap").hidden = !SECTIONS.length;
 // ---- Vcheck への要望（動画へのコメントとは別。同じ受け取り口に「vcheck-request」として届く）
-const FEEDBACK_ID = "vcheck-request", VER = "1.10.0";
+const FEEDBACK_ID = "vcheck-request", VER = "1.10.1";
 if (!RECEIVER) $("fbArea").hidden = true;      // 送り先が無いページでは出さない
 $("navFb").onclick = () => { const on = $("sideFb").hidden; $("sideFb").hidden = !on; $("navFb").setAttribute("aria-expanded", String(on)); if (on) setTimeout(() => $("fbText").focus(), 30); };
 $("fbSend").onclick = async () => {
