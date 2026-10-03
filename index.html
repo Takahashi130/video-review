@@ -8,6 +8,7 @@
 <title>Vcheck 動画確認</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@800&text=%E3%81%8F%E3%82%93&display=swap" rel="stylesheet">
 <style>
 /* Vcheck（v1.10.0）：白を土台に、色はティールだけ（動画配信サイトのような落ち着いた作り）。
    ティール #029AAA はロゴ・線・飾り、文字に使う時は #027A87（白の上 5.08:1）、淡いティールの上は #01646F。
@@ -42,7 +43,7 @@ svg.i { width:22px; height:22px; flex:none; fill:none; stroke:currentColor; stro
 .logo b { font-family:"Nunito","Hiragino Sans",sans-serif; font-weight:900; font-size:30px; letter-spacing:-.02em; line-height:1; }
 .logo b i { font-style:normal; position:relative; }
 .logo b i::after { content:""; position:absolute; right:-3px; top:-3px; width:9px; height:9px; border-radius:50%; background:var(--yellow); box-shadow:0 0 0 2px #fff; }
-.logo small { font-size:11px; font-weight:700; color:var(--sub); letter-spacing:.06em; }
+.logo .kun { font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif; font-weight:800; font-size:21px; color:var(--teal); line-height:1; margin-left:-2px; }   /* 「Vcheckくん」：丸い字でロゴにそろえる */
 .search { flex:1; max-width:520px; margin:0 auto; display:flex; align-items:center; gap:6px; background:var(--bg2); border-radius:999px; padding:0 6px 0 14px; height:44px; color:var(--sub); }
 .search input { flex:1; min-width:0; border:none; background:none; outline:none; font-size:15px; color:var(--ink); }
 .search button { border:none; background:#fff; color:var(--teal-ink); font-weight:700; border-radius:999px; height:34px; padding:0 14px; }
@@ -163,7 +164,10 @@ a.btn { text-decoration:none; }
 .ic { position:relative; width:44px; height:44px; display:inline-grid; place-items:center; border:none; background:none; border-radius:10px; color:var(--sub); }
 .ic:hover { background:var(--bg2); color:var(--ink); }
 .ic .dotn { position:absolute; top:4px; right:2px; min-width:18px; height:18px; padding:0 5px; border-radius:999px; background:var(--teal-ink); color:#fff; font-size:11px; font-weight:800; display:grid; place-items:center; }
-.cbar #add { min-width:84px; min-height:44px; border-radius:12px; padding:6px 14px; }
+.cbar #add { width:46px; height:40px; padding:0; border:none; border-radius:8px; display:grid; place-items:center; background:transparent; color:#B7C2C8; flex:none; }
+.cbar #add svg { width:22px; height:22px; }
+.cbar #add:not(:disabled) { background:var(--grad-btn); color:#fff; box-shadow:0 2px 6px rgba(2,154,170,.3); }
+.cbar #add:not(:disabled):hover { filter:brightness(1.05); }
 .crow { display:flex; align-items:center; gap:8px; margin-top:8px; flex-wrap:wrap; }
 
 .hint { font-size:13px; color:var(--sub); margin:8px 0 0; }
@@ -197,18 +201,20 @@ details[open] > summary::before { transform:rotate(90deg); }
 /* 右：コメントを書く（動画を見ながら）・全体修正・絞り込みの札・コメント一覧。動画の下：レビューが終わったら */
 .ret { padding:0; overflow:hidden; background:#fff; }
 .ret h2 { margin:0 0 12px; }
-.sendrow .note { margin:0 0 4px; font-size:13px; color:var(--sub); line-height:1.5; }
-.why > summary { font-size:13px; color:var(--sub); min-height:36px; margin-top:-4px; }
+.why .note { margin:0 0 4px; font-size:13px; color:var(--sub); line-height:1.5; }
+.why > summary { font-size:13px; color:var(--sub); min-height:34px; margin-top:4px; }
 .namefield { margin:10px 0 0; max-width:420px; }
 .ret .band { padding:14px 16px 12px; background:var(--bg2); border-bottom:1px solid var(--line); color:var(--ink); }
 .ret .band h2 { margin:0; font-size:17px; }
 .ret .band p { margin:2px 0 0; font-size:13px; color:var(--sub); }
-.ret .body { background:#fff; padding:14px 16px 16px; }
-@media (min-width: 1001px) { .ret .body > * { max-width:600px; } }   /* 動画の下で横に伸びすぎないように */
+.ret .body { background:#fff; padding:12px 14px; }
+@media (min-width: 1001px) { .ret .body > :not(.sendrow) { max-width:640px; } }   /* 説明の文は横に伸びすぎないように */
 .field { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; font-size:13px; color:var(--sub); }
 .field input { font-size:16px; padding:10px 12px; border:1.5px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); min-height:44px; }
-.sendrow { display:flex; flex-direction:column; gap:8px; }
-.sendrow .btn { width:100%; }
+.sendrow { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }   /* レビュー完了・コピー・保存・全部消すを1行に */
+.sendrow .btn { min-height:42px; padding:6px 14px; font-size:14px; }
+.sendrow .btn.done { font-size:16px; padding:6px 18px; }
+.sendrow .btn svg.i { width:18px; height:18px; }
 .state { font-size:13px; font-weight:700; border-radius:10px; padding:8px 10px; margin:10px 0 0; background:var(--bg2); color:var(--ink); }
 .state.unsent { background:var(--ytint); color:var(--navy); }
 .state.done { background:var(--tint); color:var(--teal-deep); }
@@ -216,7 +222,6 @@ details[open] > summary::before { transform:rotate(90deg); }
 .result.ok { background:var(--tint); color:var(--teal-deep); }
 .result.ng { background:#FDECEA; color:var(--danger); }
 #copyBox, .overall textarea { width:100%; min-height:76px; resize:vertical; font-size:16px; padding:10px 12px; border:1.5px solid var(--line); border-radius:10px; background:#fff; margin-top:8px; }
-.others { margin-top:6px; } .others summary { font-size:14px; color:var(--sub); }
 .chips { display:flex; flex-wrap:wrap; gap:6px; }
 .chip { display:inline-flex; align-items:center; gap:4px; min-height:36px; padding:0 12px; border-radius:6px; border:1px solid var(--line); background:#fff; font-size:13px; font-weight:700; color:var(--ink); }
 .chip[aria-pressed="true"] { background:var(--tint); border-color:var(--teal-ink); color:var(--teal-deep); }
@@ -224,13 +229,18 @@ details[open] > summary::before { transform:rotate(90deg); }
 .listhead h2 { font-size:18px; margin:0; font-weight:800; }
 .listhead span { color:var(--sub); font-size:13px; font-weight:700; }
 #list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
-#list li { display:flex; flex-direction:column; gap:6px; padding:12px 0; border-bottom:1px solid var(--line); }
+/* 1件の形：左に時刻、真ん中に文、右に送信の状態とその下に「編集」「削除」 */
+#list li { display:grid; grid-template-columns:auto minmax(0,1fr) auto; column-gap:10px; row-gap:4px; align-items:start; padding:10px 0; border-bottom:1px solid var(--line); }
+#list li > .tchip { grid-column:1; grid-row:1 / span 2; }
+#list li > .ctext { grid-column:2; grid-row:1; padding-top:6px; }
+#list li > .badges { grid-column:2; grid-row:2; }
+#list li > .rcol { grid-column:3; grid-row:1 / span 2; display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+#list li > .edit { grid-column:2 / -1; }
 #list li:last-child { border-bottom:none; }
-.lhead { display:flex; align-items:center; gap:8px; }
-.tchip { display:inline-flex; align-items:center; gap:6px; min-height:34px; padding:2px 12px 2px 10px; border-radius:999px; border:1.5px solid var(--line); background:#fff; color:var(--navy); font-weight:800; font-size:15px; font-variant-numeric:tabular-nums; }
+.tchip { display:inline-flex; align-items:center; gap:6px; min-height:32px; padding:2px 11px 2px 9px; border-radius:999px; border:1.5px solid var(--line); background:#fff; color:var(--navy); font-weight:800; font-size:14px; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .tchip svg { width:11px; height:11px; color:var(--teal-ink); }
 .tchip:hover { border-color:var(--teal-ink); color:var(--teal-deep); }
-.st { margin-left:auto; display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:var(--sub); white-space:nowrap; }
+.st { flex:none; padding-top:8px; display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:var(--sub); white-space:nowrap; }
 .st.wait::before { content:""; width:7px; height:7px; border-radius:50%; background:#D2D32C; }
 .st.ok { color:var(--teal-deep); }
 @media (pointer: coarse) { .tchip { min-height:40px; } }
@@ -240,10 +250,13 @@ details[open] > summary::before { transform:rotate(90deg); }
 .badge.ok { background:var(--tint); color:var(--teal-deep); }
 .badge.wait { background:var(--ytint); color:var(--navy); }
 .acts { display:flex; gap:6px; }
-.acts .btn { min-height:36px; padding:4px 12px; font-size:13px; }
+.acts .btn { min-height:30px; padding:2px 11px; font-size:12.5px; }
+@media (pointer: coarse) { .acts .btn { min-height:38px; } }
 #list li .edit textarea { width:100%; min-height:72px; font-size:16px; padding:8px 10px; border:1.5px solid var(--teal-ink); border-radius:10px; resize:vertical; }
 .empty { color:var(--sub); font-size:14px; margin:6px 0 0; }
 .overall .sub { font-size:13px; color:var(--sub); font-weight:400; }
+.overall textarea { min-height:172px; line-height:1.5; }
+@media (max-width: 600px) { .overall textarea { min-height:196px; } }
 .overall > summary { align-items:flex-start; }
 .overall > summary::before { margin-top:2px; }
 .overall .ovh { display:flex; flex-direction:column; gap:4px; flex:1; min-width:0; }
@@ -297,11 +310,11 @@ details[open] > summary::before { transform:rotate(90deg); }
   .vwrap { max-height:none; }
 }
 @media (max-width: 600px) {
+  .sendrow .btn { flex:1 1 auto; }   /* スマホは2段に分かれても幅いっぱいに */
   .emo { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }   /* スマホは1段で横に流す（キーボードがあっても入力欄が隠れない） */
   .emo::-webkit-scrollbar { display:none; }
   .emo button { flex:none; }
   .top { padding:0 8px; gap:4px; }
-  .logo small { display:none; }
   .me .nm { display:none; }
   .bar .vol { display:none; }
   .acts3 { gap:6px; }
@@ -330,7 +343,7 @@ details[open] > summary::before { transform:rotate(90deg); }
 <body>
 <header class="top">
   <button class="iconbtn" id="menuBtn" aria-label="メニューを開く・閉じる" aria-expanded="false"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-  <a class="logo" href="#" id="logo" aria-label="Vcheck 動画確認"><b>V<i></i>check</b><small>動画確認</small></a>
+  <a class="logo" href="#" id="logo" aria-label="Vcheckくん"><b>V<i></i>check</b><span class="kun">くん</span></a>
   <form class="search" id="search" role="search">
     <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
     <input id="url" placeholder="YouTube のリンクを貼って、別の動画レビューを作成" autocomplete="off" aria-label="YouTube のリンク">
@@ -411,21 +424,16 @@ details[open] > summary::before { transform:rotate(90deg); }
 
     <div class="card ret" id="returnCard">
       <div class="body">
-        <h2>レビューが終わったら</h2>
         <div class="sendrow">
-          <button class="btn done big" id="send" hidden><svg class="i" viewBox="0 0 24 24"><path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5L3 9.5z"/></svg><span class="lbl">レビュー完了</span></button>
-          <details class="why" id="returnWhy"><summary>押すとどうなる？</summary><p class="note" id="returnNote"></p></details>
-          <button class="btn big line" id="copy"><svg class="i" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="3"/><path d="M15.5 8.5V6.5a3 3 0 0 0-3-3h-6a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h2"/></svg>コメントを全てコピー</button>
+          <button class="btn done" id="send" hidden><svg class="i" viewBox="0 0 24 24"><path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5L3 9.5z"/></svg><span class="lbl">レビュー完了</span></button>
+          <button class="btn line" id="copy"><svg class="i" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="3"/><path d="M15.5 8.5V6.5a3 3 0 0 0-3-3h-6a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h2"/></svg>コメントを全てコピー</button>
+          <button class="btn quiet" id="dl" title="この端末にコメントを文字のファイル（.txt）で保存します"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19h14"/></svg>コメントを保存</button>
+          <button class="btn danger" id="clear">コメントを全部消す</button>
         </div>
+        <details class="why" id="returnWhy"><summary>押すとどうなる？</summary><p class="note" id="returnNote"></p></details>
         <p class="state" id="saveState" role="status"></p>
         <p class="result" id="result" role="status" hidden></p>
         <textarea id="copyBox" readonly hidden aria-label="コピーする文"></textarea>
-        <details class="others"><summary>コメント保存と削除</summary>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
-            <button class="btn quiet" id="dl" title="この端末にコメントを文字のファイル（.txt）で保存します"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19h14"/></svg>コメントを保存</button>
-            <button class="btn danger" id="clear">コメントを全部消す</button>
-          </div>
-        </details>
       </div>
     </div>
 
@@ -475,7 +483,7 @@ details[open] > summary::before { transform:rotate(90deg); }
 
   <aside class="aside">
     <div class="card composer" id="composer">
-      <h2>コメントを書く</h2>
+      <h2>個別修正</h2>
       <div class="when"><span class="stamp" id="stamp" hidden></span><span id="whenNote">「この場面にコメント」をクリックしてください</span></div>
       <div class="cbox">
         <textarea id="box" rows="3" placeholder="修正してほしい内容" autocomplete="off" enterkeyhint="enter" aria-label="コメント"></textarea>
@@ -488,7 +496,7 @@ details[open] > summary::before { transform:rotate(90deg); }
           <span class="grow"></span>
           <button class="ic" id="mic" aria-label="声で入れる" title="声で入れる" hidden><svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button>
           <button class="ic" id="cancel" aria-label="やめる" title="やめる（書いた文を消して戻る）" hidden><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-          <button class="btn primary" id="add" disabled>追加</button>
+          <button id="add" disabled aria-label="追加" title="追加（Enter）"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 20.5 22 12 2.5 3.5l.01 6.6L16 12 2.51 13.9z" fill="currentColor"/></svg></button>
         </div>
       </div>
       <p class="hint" id="chint" hidden></p>
@@ -515,7 +523,7 @@ details[open] > summary::before { transform:rotate(90deg); }
 
     <details class="card overall" id="ovCard">
       <summary><span class="ovh"><h2>全体修正</h2><span class="sub">全体的な大きな修正はこちらへ</span></span><span class="has" id="ovHas" hidden>入力あり</span></summary>
-      <textarea id="ov" placeholder="例：後ろの場面から素材を持ってこない"></textarea>
+      <textarea id="ov" placeholder="例：&#10;・通行人すべてにモザイクをかけてください&#10;・BGM全体的に大きいので少しさげてください&#10;・強調テロップで使ってるフォントが違うので参考のものに変更してください"></textarea>
       <div class="crow"><button class="btn quiet" id="ovatt"><svg class="i" viewBox="0 0 24 24"><path d="M21.4 11.1l-9.2 9.2a6 6 0 01-8.5-8.5l9.2-9.2a4 4 0 015.7 5.7l-9.2 9.2a2 2 0 01-2.8-2.8l8.5-8.5"/></svg>画像を付ける</button><span class="thumbs" id="ovthumbs"></span></div>
     </details>
 
@@ -533,10 +541,10 @@ details[open] > summary::before { transform:rotate(90deg); }
   </aside>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="ver">Vcheck 動画確認ページ v1.12.0</div>
+<div class="ver">Vcheck 動画確認ページ v1.13.0</div>
 <input type="file" id="pick" accept="image/*" multiple hidden>
 <script>
-// Vcheck 動画確認ページ v1.10.0（パソコンはコメント欄を右上に。左のバーは使い方と要望だけ）
+// Vcheck 動画確認ページ（版はいちばん下の .ver と VER）
 // 使い方：https://<ユーザー>.github.io/video-review/?v=<YouTube の動画ID か URL>&title=<題>&fps=29.97&ch=<秒>:<区間名>,…&to=<受け取り口の URL>
 // このページには番組の中身（字幕・文字起こし）は置かない。どの動画かはリンクで渡す。コメントは見た人のブラウザに残り、「送信」した時だけ受け取り口に届く。
 const Q = new URLSearchParams(location.search);
@@ -844,11 +852,11 @@ if (GUIDE_URL) { $("navGuide").href = GUIDE_URL; $("navGuide").hidden = false; }
 if (RECEIVER) {
   sendBtn.hidden = false;
   $("flow3").textContent = "終わったら「レビュー完了」";
-  $("returnNote").textContent = "押すと、書いたコメント・描き込み・画像が動画の作り手に届きます。何度押しても大丈夫です（新しく書いた分だけ届きます）。メッセージで相手に送りたい時は下の「コメントを全てコピー」。";
+  $("returnNote").textContent = "押すと、書いたコメント・描き込み・画像が動画の作り手に届きます。何度押しても大丈夫です（新しく書いた分だけ届きます）。メッセージで相手に送りたい時は「コメントを全てコピー」。";
 } else {
   copyBtn.classList.remove("line"); copyBtn.classList.add("primary");
   $("flow3").textContent = "終わったら「コメントを全てコピー」してメッセージで相手に送る";
-  $("returnNote").textContent = "下の「コメントを全てコピー」を押して、メッセージに貼り付けて相手に送ってください";
+  $("returnNote").textContent = "「コメントを全てコピー」を押して、メッセージに貼り付けて相手に送ってください";
   $("returnWhy").open = true; $("returnWhy").querySelector("summary").hidden = true;   // 送り先が無い時は説明を出したまま
   $("att").hidden = true; $("ovatt").parentElement.hidden = true;     // 受け取り口が無い時は画像を届けられないので出さない
 }
@@ -942,8 +950,8 @@ function render() {
     if (it.sec) badge(it.sec);
     if (it.d) badge("描き込み");
     if (it.images && it.images.length) badge("画像 " + it.images.length);
-    const head = document.createElement("div"); head.className = "lhead"; head.append(t);
-    if (RECEIVER) { const st = document.createElement("span"); st.className = "st " + (it.sent ? "ok" : "wait"); st.textContent = it.sent ? "✓ 送信済み" : "未送信"; head.append(st); }
+    const rcol = document.createElement("div"); rcol.className = "rcol";       // 右：送信の状態、その下に「編集」「削除」
+    if (RECEIVER) { const st = document.createElement("span"); st.className = "st " + (it.sent ? "ok" : "wait"); st.textContent = it.sent ? "✓ 送信済み" : "未送信"; rcol.append(st); }
     const acts = document.createElement("div"); acts.className = "acts";
     const ed = document.createElement("button"); ed.className = "btn quiet"; ed.textContent = "編集";
     const del = document.createElement("button"); del.className = "btn danger"; del.textContent = "削除";
@@ -969,7 +977,8 @@ function render() {
       };
     };
     acts.append(ed, del);
-    li.append(head, c); if (bd.childElementCount) li.append(bd); li.append(acts); list.append(li);
+    rcol.append(acts);
+    li.append(t, c, rcol); if (bd.childElementCount) li.append(bd); list.append(li);
   });
   updState();
 }
@@ -1089,7 +1098,7 @@ SECTIONS.forEach(sc => {
 });
 $("secCap").hidden = !SECTIONS.length;
 // ---- Vcheck への要望（動画へのコメントとは別。同じ受け取り口に「vcheck-request」として届く）
-const FEEDBACK_ID = "vcheck-request", VER = "1.12.0";
+const FEEDBACK_ID = "vcheck-request", VER = "1.13.0";
 if (!RECEIVER) $("fbArea").hidden = true;      // 送り先が無いページでは出さない
 $("navFb").onclick = () => {
   const wasMini = WIDE() && document.body.classList.contains("mini");
