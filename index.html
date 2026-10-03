@@ -193,7 +193,8 @@ details[open] > summary::before { transform:rotate(90deg); }
 /* 右：コメントを書く（動画を見ながら）・全体修正・絞り込みの札・コメント一覧。動画の下：レビューが終わったら */
 .ret { padding:0; overflow:hidden; background:#fff; }
 .ret h2 { margin:0 0 12px; }
-.sendrow .note { margin:-2px 0 6px; font-size:13px; color:var(--sub); line-height:1.5; }
+.sendrow .note { margin:0 0 4px; font-size:13px; color:var(--sub); line-height:1.5; }
+.why > summary { font-size:13px; color:var(--sub); min-height:36px; margin-top:-4px; }
 .namefield { margin:10px 0 0; max-width:420px; }
 .ret .band { padding:14px 16px 12px; background:var(--bg2); border-bottom:1px solid var(--line); color:var(--ink); }
 .ret .band h2 { margin:0; font-size:17px; }
@@ -391,7 +392,7 @@ details[open] > summary::before { transform:rotate(90deg); }
         <h2>レビューが終わったら</h2>
         <div class="sendrow">
           <button class="btn done big" id="send" hidden><svg class="i" viewBox="0 0 24 24"><path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5L3 9.5z"/></svg><span class="lbl">レビュー完了</span></button>
-          <p class="note" id="returnNote"></p>
+          <details class="why" id="returnWhy"><summary>押すとどうなる？</summary><p class="note" id="returnNote"></p></details>
           <button class="btn big line" id="copy"><svg class="i" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="3"/><path d="M15.5 8.5V6.5a3 3 0 0 0-3-3h-6a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h2"/></svg>コメントを全てコピー</button>
         </div>
         <p class="state" id="saveState" role="status"></p>
@@ -793,11 +794,12 @@ const sendBtn = $("send"), copyBtn = $("copy");
 if (RECEIVER) {
   sendBtn.hidden = false;
   $("flow3").textContent = "終わったら「レビュー完了」";
-  $("returnNote").textContent = "↑ 押すと、書いたコメント・描き込み・画像が動画の作り手に届きます。何度押しても大丈夫です（新しく書いた分だけ届きます）。メッセージで相手に送りたい時は下の「コメントを全てコピー」。";
+  $("returnNote").textContent = "押すと、書いたコメント・描き込み・画像が動画の作り手に届きます。何度押しても大丈夫です（新しく書いた分だけ届きます）。メッセージで相手に送りたい時は下の「コメントを全てコピー」。";
 } else {
   copyBtn.classList.remove("line"); copyBtn.classList.add("primary");
   $("flow3").textContent = "終わったら「コメントを全てコピー」してメッセージで相手に送る";
   $("returnNote").textContent = "下の「コメントを全てコピー」を押して、メッセージに貼り付けて相手に送ってください";
+  $("returnWhy").open = true; $("returnWhy").querySelector("summary").hidden = true;   // 送り先が無い時は説明を出したまま
   $("att").hidden = true; $("ovatt").parentElement.hidden = true;     // 受け取り口が無い時は画像を届けられないので出さない
 }
 function ovPending() { return (overall.text || overall.images.length) && (overall.text !== overall.sentText || overall.images.length !== overall.sentN) ? 1 : 0; }
