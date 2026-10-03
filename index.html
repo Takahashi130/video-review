@@ -365,10 +365,12 @@ details[open] > summary::before { transform:rotate(90deg); }
   body.typing .stamp.mini { display:inline-flex; }
 }
 @media (min-width: 1001px) {
-  /* 大きく表示：動画と「個別修正」だけ。動画は画面の高さに収まる大きさに */
-  body.focus .side, body.focus .info, body.focus #returnCard, body.focus #more, body.focus #ovCard, body.focus #filters, body.focus #listCard, body.focus .ver { display:none !important; }
-  body.focus .wrap, body.mini.focus .wrap { grid-template-columns:minmax(0,1fr) 400px; max-width:none; padding-left:24px; }
-  body.focus .vwrap { max-height:calc(100vh - var(--headH) - 200px); }
+  /* 大きく表示：上のバー・左のバー・題・下の欄を消し、動画と右の欄（個別修正・全体修正・コメント一覧）だけ。動画は画面の高さに収まる大きさに */
+  body.focus .top, body.focus .side, body.focus .info, body.focus #returnCard, body.focus #more, body.focus .ver { display:none !important; }
+  body.focus .wrap, body.mini.focus .wrap { grid-template-columns:minmax(0,1fr) 400px; max-width:none; padding-left:24px; padding-bottom:0; }
+  body.focus .vwrap { max-height:calc(100vh - 170px); }
+  body.focus .aside { position:sticky; top:0; max-height:100vh; overflow-y:auto; padding-bottom:16px; }   /* 右の欄は動画を動かさずにそれだけで動かせる */
+  body.focus #list { max-height:none; overflow:visible; }
   #list { max-height:56vh; overflow:auto; padding-right:4px; }
   .btnrow { display:none; }   /* 題の下の「レビュー完了」はスマホだけ（パソコンはすぐ下とヘッダーにある） */
 }
@@ -433,7 +435,7 @@ details[open] > summary::before { transform:rotate(90deg); }
           <input type="range" class="rng vol" id="vol" min="0" max="100" step="5" value="100" aria-label="音量">
           <span class="grow"></span>
           <span class="tc" id="tc">--:-- / --:--</span>
-          <button class="ib" id="focusBtn" aria-label="大きく表示" title="大きく表示（動画と個別修正だけにする）" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+          <button class="ib" id="focusBtn" aria-label="大きく表示" title="大きく表示（動画と右の欄だけにする）" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
         </div>
       </div>
       <div class="controls">
@@ -584,7 +586,7 @@ details[open] > summary::before { transform:rotate(90deg); }
   </aside>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="ver">Vcheck 動画確認ページ v1.16.0</div>
+<div class="ver">Vcheck 動画確認ページ v1.16.1</div>
 <input type="file" id="pick" accept="image/*" multiple hidden>
 <script>
 // Vcheck 動画確認ページ（版はいちばん下の .ver と VER）
@@ -793,7 +795,7 @@ if (TOUCH) { $("shield").hidden = true; $("kbd").hidden = true; }
 // 大きく表示（選んだ形を覚える）
 function setFocus(on, keep = true) {
   document.body.classList.toggle("focus", on);
-  const b = $("focusBtn"); b.setAttribute("aria-pressed", String(on)); b.title = on ? "元の表示に戻す" : "大きく表示（動画と個別修正だけにする）"; b.setAttribute("aria-label", on ? "元の表示に戻す" : "大きく表示");
+  const b = $("focusBtn"); b.setAttribute("aria-pressed", String(on)); b.title = on ? "元の表示に戻す" : "大きく表示（動画と右の欄だけにする）"; b.setAttribute("aria-label", on ? "元の表示に戻す" : "大きく表示");
   b.innerHTML = on ? '<svg class="i" viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>' : '<svg class="i" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
   if (keep) try { localStorage.setItem("vcheck:focus", on ? "1" : "0"); } catch (e) {}
 }
@@ -1160,7 +1162,7 @@ SECTIONS.forEach(sc => {
 });
 $("secCap").hidden = !SECTIONS.length;
 // ---- Vcheck への要望（動画へのコメントとは別。同じ受け取り口に「vcheck-request」として届く）
-const FEEDBACK_ID = "vcheck-request", VER = "1.16.0";
+const FEEDBACK_ID = "vcheck-request", VER = "1.16.1";
 if (!RECEIVER) $("fbArea").hidden = true;      // 送り先が無いページでは出さない
 $("navFb").onclick = () => {
   const wasMini = WIDE() && document.body.classList.contains("mini");
