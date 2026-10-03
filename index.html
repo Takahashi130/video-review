@@ -317,6 +317,7 @@ details[open] > summary::before { transform:rotate(90deg); }
 }
 /* 1000px 以下：1列（スマホ）。動画と操作はページの上に貼りつく */
 @media (max-width: 1000px) {
+  #focusBtn { display:none; }
   :root { --headH:56px; }
   .wrap { display:flex; flex-direction:column; align-items:stretch; gap:12px; padding:0 0 16px; }
   .main, .aside { display:contents; }
@@ -364,6 +365,10 @@ details[open] > summary::before { transform:rotate(90deg); }
   body.typing .stamp.mini { display:inline-flex; }
 }
 @media (min-width: 1001px) {
+  /* 大きく表示：動画と「個別修正」だけ。動画は画面の高さに収まる大きさに */
+  body.focus .side, body.focus .info, body.focus #returnCard, body.focus #more, body.focus #ovCard, body.focus #filters, body.focus #listCard, body.focus .ver { display:none !important; }
+  body.focus .wrap, body.mini.focus .wrap { grid-template-columns:minmax(0,1fr) 400px; max-width:none; padding-left:24px; }
+  body.focus .vwrap { max-height:calc(100vh - var(--headH) - 200px); }
   #list { max-height:56vh; overflow:auto; padding-right:4px; }
   .btnrow { display:none; }   /* 題の下の「レビュー完了」はスマホだけ（パソコンはすぐ下とヘッダーにある） */
 }
@@ -428,6 +433,7 @@ details[open] > summary::before { transform:rotate(90deg); }
           <input type="range" class="rng vol" id="vol" min="0" max="100" step="5" value="100" aria-label="音量">
           <span class="grow"></span>
           <span class="tc" id="tc">--:-- / --:--</span>
+          <button class="ib" id="focusBtn" aria-label="大きく表示" title="大きく表示（動画と個別修正だけにする）" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
         </div>
       </div>
       <div class="controls">
@@ -511,6 +517,7 @@ details[open] > summary::before { transform:rotate(90deg); }
             <dt><kbd>Enter</kbd></dt><dd>この場面にコメント（書いている時は追加）</dd>
             <dt><kbd>Shift</kbd>＋<kbd>Enter</kbd></dt><dd>改行</dd>
             <dt><kbd>Esc</kbd></dt><dd>やめる</dd>
+            <dt><kbd>T</kbd></dt><dd>大きく表示／元に戻す</dd>
           </dl>
         </section>
       </div>
@@ -577,7 +584,7 @@ details[open] > summary::before { transform:rotate(90deg); }
   </aside>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="ver">Vcheck 動画確認ページ v1.15.0</div>
+<div class="ver">Vcheck 動画確認ページ v1.16.0</div>
 <input type="file" id="pick" accept="image/*" multiple hidden>
 <script>
 // Vcheck 動画確認ページ（版はいちばん下の .ver と VER）
@@ -674,7 +681,7 @@ function pin() {
   P.pause(); pinned = P.t(); shown = null; inkMode(true); refreshComposer(); return true;
 }
 function unpin(resume) {
-  if (listening && rec) { try { rec.abort(); } catch (e) {} }
+  if (listening && rec) { micWant = false; try { rec.abort(); } catch (e) {} }
   box.value = ""; fitBox(); pinned = null; pendImgs = []; showPend(); inkMode(false); showDraw(false); showEmo(false); refreshComposer();
   box.blur(); if (resume) P.play();
 }
@@ -776,12 +783,22 @@ document.addEventListener("keydown", e => {
   if (a && (a.tagName === "TEXTAREA" || a.tagName === "INPUT" || a.isContentEditable)) return;
   if (e.key === "Enter") { if (a && (a.tagName === "BUTTON" || a.tagName === "A" || a.tagName === "SUMMARY")) return; e.preventDefault(); $("write").click(); }
   else if (e.key === " ") { if (a && (a.tagName === "BUTTON" || a.tagName === "SUMMARY")) return; e.preventDefault(); P.paused() ? P.play() : P.pause(); }
+  else if ((e.key === "t" || e.key === "T") && !e.metaKey && !e.ctrlKey && innerWidth > 1000) { e.preventDefault(); $("focusBtn").click(); }
   else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
     e.preventDefault(); const dir = e.key === "ArrowLeft" ? -1 : 1;
     if (e.shiftKey) moveTo(P.t() + JUMP * dir); else step(dir);
   }
 });
-if (TOUCH) { $("shield").hidden = true; $("kbd").hidden = true; }   // スマホは動画を直接タップして再生（最初の再生はタップが必要）
+if (TOUCH) { $("shield").hidden = true; $("kbd").hidden = true; }
+// 大きく表示（選んだ形を覚える）
+function setFocus(on, keep = true) {
+  document.body.classList.toggle("focus", on);
+  const b = $("focusBtn"); b.setAttribute("aria-pressed", String(on)); b.title = on ? "元の表示に戻す" : "大きく表示（動画と個別修正だけにする）"; b.setAttribute("aria-label", on ? "元の表示に戻す" : "大きく表示");
+  b.innerHTML = on ? '<svg class="i" viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>' : '<svg class="i" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+  if (keep) try { localStorage.setItem("vcheck:focus", on ? "1" : "0"); } catch (e) {}
+}
+$("focusBtn").onclick = () => { setFocus(!document.body.classList.contains("focus")); $("focusBtn").blur(); };
+try { if (localStorage.getItem("vcheck:focus") === "1") setFocus(true, false); } catch (e) {}   // スマホは動画を直接タップして再生（最初の再生はタップが必要）
 
 // ---- 自前の再生バー
 const pp = $("pp"), tc = $("tc"), seek = $("seek"), vol = $("vol"), mute = $("mute");
@@ -813,26 +830,39 @@ const mic = $("mic");
 let rec = null, listening = false, micBase = "";
 if (SR && !navigator.brave) { mic.hidden = false; $("micNote").hidden = false; }
 function micStop() { listening = false; mic.classList.remove("on"); mic.setAttribute("aria-label", "声で入れる"); mic.title = "声で入れる"; box.placeholder = "修正してほしい内容"; }
-mic.onclick = () => {
-  if (listening && rec) { rec.stop(); return; }
-  if (pinned === null && !pin()) return;
-  rec = new SR(); rec.lang = "ja-JP"; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+let micWant = false, micT0 = 0, micLast = 0, micTimer = null;
+const MIC_QUIET = 12000, MIC_MAX = 180000;   // 黙ったまま12秒、または全部で3分で止める
+function micStart() {
+  rec = new SR(); rec.lang = "ja-JP"; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
   micBase = box.value ? box.value.replace(/\s+$/, "") + " " : "";
   rec.onresult = e => {
     let fin = "", mid = "";
     for (let i = 0; i < e.results.length; i++) { const r = e.results[i]; (r.isFinal ? (fin += r[0].transcript) : (mid += r[0].transcript)); }
-    box.value = (micBase + fin + mid).trim(); fitBox(); refreshComposer();
+    box.value = (micBase + fin + mid).trim(); fitBox(); refreshComposer(); micLast = Date.now();
   };
   rec.onerror = e => {
+    if (e.error === "no-speech" || e.error === "aborted") return;     // 少し黙っただけ：続けて聞き直す
+    micWant = false;
     const why = { "not-allowed": "マイクを使う許可が必要です（ブラウザの許可を確かめてください）", "service-not-allowed": "マイクを使う許可が必要です",
-                  "no-speech": "声が聞こえませんでした。もう一度マイクのアイコンを押してください", "audio-capture": "マイクが見つかりません",
-                  "network": "このブラウザでは声の入力が使えません。Chrome か Safari で開いてください" }[e.error] || ("声の入力が止まりました（" + e.error + "）");
+                  "audio-capture": "マイクが見つかりません", "network": "このブラウザでは声の入力が使えません。Chrome か Safari で開いてください" }[e.error] || ("声の入力が止まりました（" + e.error + "）");
     toast(why, 3000);
     if (e.error === "network" || e.error === "service-not-allowed") mic.hidden = true;
   };
-  rec.onend = () => { micStop(); if (box.value.trim()) toast("内容を確かめて「追加」"); };
-  try { rec.start(); listening = true; mic.classList.add("on"); mic.setAttribute("aria-label", "声の入力を止める"); mic.title = "声の入力を止める"; box.placeholder = "話してください…（もう一度押すと止まります）"; }
-  catch (err) { micStop(); toast("声の入力を始められませんでした"); }
+  rec.onend = () => {     // ブラウザが途中で切っても、止めるまでは聞き直す
+    if (micWant && Date.now() - micLast < MIC_QUIET && Date.now() - micT0 < MIC_MAX) { try { micStart(); return; } catch (err) {} }
+    micWant = false; clearInterval(micTimer); micStop(); if (box.value.trim()) toast("内容を確かめて送信のアイコンで追加");
+  };
+  rec.start();
+}
+mic.onclick = () => {
+  if (listening && rec) { micWant = false; rec.stop(); return; }
+  if (pinned === null && !pin()) return;
+  try {
+    micWant = true; micT0 = micLast = Date.now(); micStart();
+    listening = true; mic.classList.add("on"); mic.setAttribute("aria-label", "声の入力を止める"); mic.title = "声の入力を止める"; box.placeholder = "話してください…（終わったらもう一度押す）";
+    clearInterval(micTimer); micTimer = setInterval(() => { if (micWant && (Date.now() - micLast > MIC_QUIET || Date.now() - micT0 > MIC_MAX)) { micWant = false; try { rec.stop(); } catch (e) {} } }, 1000);
+  }
+  catch (err) { micWant = false; micStop(); toast("声の入力を始められませんでした"); }
 };
 
 // ---- 画像（参考の絵柄やスクショ。ページで縮めてから持つ）と全体修正
@@ -967,7 +997,7 @@ $("clear").onclick = e => {      // 確認は2回押し（ブラウザの確認�
   items = []; save(); render(); armed = false; b.textContent = "コメントを全部消す"; toast("コメントを全部消しました");
 };
 
-// ---- コメント一覧（時刻を押すとその場面へ。「編集」で書き直し、「削除」は2回押し）
+// ---- コメント一覧（時刻を押すとその場面へ。「編集」で書き直し、「削除」は1回で消える）
 function render() {
   list.innerHTML = "";
   const pass = it => filt === "all" || (filt === "unsent" && !it.sent) || (filt === "ink" && it.d) || (filt === "img" && it.images && it.images.length);
@@ -991,11 +1021,7 @@ function render() {
     const acts = document.createElement("div"); acts.className = "acts";
     const ed = document.createElement("button"); ed.className = "btn quiet"; ed.textContent = "編集";
     const del = document.createElement("button"); del.className = "btn danger"; del.textContent = "削除";
-    let delArmed = false;
-    del.onclick = () => {
-      if (!delArmed) { delArmed = true; del.textContent = "もう一度で削除"; setTimeout(() => { delArmed = false; del.textContent = "削除"; }, 3000); return; }
-      items.splice(i, 1); save(); render(); toast("コメントを削除しました");
-    };
+    del.onclick = () => { items.splice(i, 1); save(); render(); toast("コメントを削除しました"); };   // 確認なしで1回で消す（ユーザー指定）
     ed.onclick = () => {
       const w = document.createElement("div"); w.className = "edit";
       const ta = document.createElement("textarea"); ta.value = it.text; ta.setAttribute("aria-label", "コメントを編集");
@@ -1134,7 +1160,7 @@ SECTIONS.forEach(sc => {
 });
 $("secCap").hidden = !SECTIONS.length;
 // ---- Vcheck への要望（動画へのコメントとは別。同じ受け取り口に「vcheck-request」として届く）
-const FEEDBACK_ID = "vcheck-request", VER = "1.15.0";
+const FEEDBACK_ID = "vcheck-request", VER = "1.16.0";
 if (!RECEIVER) $("fbArea").hidden = true;      // 送り先が無いページでは出さない
 $("navFb").onclick = () => {
   const wasMini = WIDE() && document.body.classList.contains("mini");
