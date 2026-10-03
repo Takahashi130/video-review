@@ -191,7 +191,7 @@ button:focus-visible, input:focus-visible { outline:2px solid var(--accent); out
   </section>
 </main>
 <div class="toast" id="toast"></div>
-<div class="ver">動画確認ページ YouTube版 v1.7.0</div>
+<div class="ver">動画確認ページ YouTube版 v1.7.1</div>
 <script>
 // 使い方：https://<ユーザー>.github.io/video-review/?v=<YouTube の動画ID か URL>&title=<題>&fps=29.97&ch=<秒>:<区間名>,<秒>:<区間名>
 // このページには番組の中身（字幕・文字起こし）は置かない。どの動画かはリンクで渡す。コメントは見た人のブラウザにだけ残る。
@@ -400,7 +400,7 @@ document.querySelector(".entry").addEventListener("drop", e => { e.preventDefaul
 showOv();
 
 // ---- 送信（Google の受け取り口へ。コメントはシート、画像はドライブ。Claude が読む）
-const RECEIVER = Q.get("to") || "";   // 受け取り口の URL（Google で有効にしたら決め打ちにする）
+const RECEIVER = Q.get("to") || "https://script.google.com/macros/s/AKfycbwvGfAhFiiCpCXHqsWG-9pUg8dW_lAUeq3GvgfcA5GGjVkxiMTjJeihB6EO-IWKkLrnug/exec";   // 受け取り口（このページを置いた人の Google。ほかの人は自分の GitHub にコピーして自分の URL に替える）
 const sendBtn = document.getElementById("send"), sendState = document.getElementById("sendstate");
 if (RECEIVER) {
   sendBtn.hidden = false;
