@@ -220,10 +220,16 @@ details[open] > summary::before { transform:rotate(90deg); }
 .listhead h2 { font-size:18px; margin:0; font-weight:800; }
 .listhead span { color:var(--sub); font-size:13px; font-weight:700; }
 #list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
-#list li { display:grid; grid-template-columns:112px minmax(0,1fr); gap:4px 12px; padding:10px 0; border-bottom:1px solid var(--line); }
+#list li { display:flex; flex-direction:column; gap:6px; padding:12px 0; border-bottom:1px solid var(--line); }
 #list li:last-child { border-bottom:none; }
-.tbtn { grid-row:span 3; align-self:start; height:64px; border-radius:8px; border:none; background:linear-gradient(135deg, #0F1A22, #06304F); color:#fff; font-weight:800; font-size:18px; font-variant-numeric:tabular-nums; position:relative; }
-.tbtn::after { content:"▶"; position:absolute; left:8px; bottom:6px; font-size:10px; color:var(--yellow); }
+.lhead { display:flex; align-items:center; gap:8px; }
+.tchip { display:inline-flex; align-items:center; gap:6px; min-height:34px; padding:2px 12px 2px 10px; border-radius:999px; border:1.5px solid var(--line); background:#fff; color:var(--navy); font-weight:800; font-size:15px; font-variant-numeric:tabular-nums; }
+.tchip svg { width:11px; height:11px; color:var(--teal-ink); }
+.tchip:hover { border-color:var(--teal-ink); color:var(--teal-deep); }
+.st { margin-left:auto; display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:var(--sub); white-space:nowrap; }
+.st.wait::before { content:""; width:7px; height:7px; border-radius:50%; background:#D2D32C; }
+.st.ok { color:var(--teal-deep); }
+@media (pointer: coarse) { .tchip { min-height:40px; } }
 .ctext { white-space:pre-wrap; overflow-wrap:anywhere; font-weight:700; font-size:14px; line-height:1.45; }
 .badges { display:flex; flex-wrap:wrap; gap:6px; font-size:12px; color:var(--sub); }
 .badge { border-radius:4px; padding:0 6px; background:var(--bg2); color:var(--sub); font-weight:600; }
@@ -231,7 +237,6 @@ details[open] > summary::before { transform:rotate(90deg); }
 .badge.wait { background:var(--ytint); color:var(--navy); }
 .acts { display:flex; gap:6px; }
 .acts .btn { min-height:36px; padding:4px 12px; font-size:13px; }
-#list li .edit { grid-column:2; }
 #list li .edit textarea { width:100%; min-height:72px; font-size:16px; padding:8px 10px; border:1.5px solid var(--teal-ink); border-radius:10px; resize:vertical; }
 .empty { color:var(--sub); font-size:14px; margin:6px 0 0; }
 .overall .sub { font-size:13px; color:var(--sub); font-weight:400; }
@@ -240,6 +245,7 @@ details[open] > summary::before { transform:rotate(90deg); }
 .overall .ovh { display:flex; flex-direction:column; gap:4px; flex:1; min-width:0; }
 .overall .ovh h2 { margin:0; }
 .overall .has { flex:none; font-size:12px; font-weight:800; color:var(--navy); background:var(--yellow); border-radius:999px; padding:2px 10px; }
+.side .ls { display:none; }   /* 細い形の時だけの短い名前 */
 .side button.fbnav { font-size:14px; color:var(--sub); }
 .side button.fbnav[aria-expanded="true"] { color:var(--teal-deep); }
 .sidefb { display:flex; flex-direction:column; gap:8px; padding:0 6px 8px; }
@@ -260,7 +266,17 @@ details[open] > summary::before { transform:rotate(90deg); }
   .side { position:fixed; left:0; top:0; bottom:0; height:auto; width:min(280px, 82vw); z-index:40; transform:translateX(-102%); transition:transform .2s; box-shadow:0 0 30px rgba(0,0,0,.15); padding-top:calc(16px + env(safe-area-inset-top, 0px)); }
   body.menu .side { transform:none; }
 }
-@media (min-width: 1200px) { #menuBtn { display:none; } .scrim { display:none; } }
+@media (min-width: 1200px) {
+  .scrim { display:none; }
+  /* ≡ で左のバーを細くする（配信サイトと同じ。アイコンの下に小さな文字） */
+  .wrap { transition:grid-template-columns .2s; }
+  body.mini .wrap { grid-template-columns:76px minmax(0,1fr) 400px; }
+  body.mini .side { padding:12px 4px; }
+  body.mini .side .cap, body.mini .side hr, body.mini #sideSecs, body.mini .sidefb { display:none; }
+  body.mini .side .nav { flex-direction:column; justify-content:center; gap:5px; min-height:66px; padding:8px 2px; font-size:10.5px; font-weight:700; text-align:center; line-height:1.3; color:var(--ink); }
+  body.mini .side .nav .lb { display:none; }
+  body.mini .side .nav .ls { display:block; width:100%; font-size:11px; }
+}
 /* 1000px 以下：1列（スマホ）。動画と操作はページの上に貼りつく */
 @media (max-width: 1000px) {
   :root { --headH:56px; }
@@ -286,8 +302,6 @@ details[open] > summary::before { transform:rotate(90deg); }
   .info .acts3 { order:2; justify-content:flex-start; gap:18px; }
   .btnrow { order:4; }
   .btnrow .btn { flex:1; }
-  #list li { grid-template-columns:88px minmax(0,1fr); }
-  .tbtn { height:54px; font-size:16px; }
   /* キーボードを出している間：動画を小さくして、入力欄と「追加」が見える高さにする */
   body.typing .bar #seek, body.typing .bar .tc, body.typing .composer h2, body.typing .composer .when, body.typing #chint, body.typing .composer .how, body.typing #secs { display:none; }
   body.typing .info { display:none; }
@@ -308,7 +322,7 @@ details[open] > summary::before { transform:rotate(90deg); }
 </head>
 <body>
 <header class="top">
-  <button class="iconbtn" id="menuBtn" aria-label="メニュー"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  <button class="iconbtn" id="menuBtn" aria-label="メニューを開く・閉じる" aria-expanded="false"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   <a class="logo" href="#" id="logo" aria-label="Vcheck 動画確認"><b>V<i></i>check</b><small>動画確認</small></a>
   <form class="search" id="search" role="search">
     <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
@@ -323,11 +337,12 @@ details[open] > summary::before { transform:rotate(90deg); }
     <p class="cap" id="secCap" hidden>区間</p>
     <div id="sideSecs"></div>
     <p class="cap">使い方</p>
-    <button class="nav" id="navHow"><svg class="i" viewBox="0 0 24 24"><path d="M4 5h6a2 2 0 012 2v12a2 2 0 00-2-2H4zM20 5h-6a2 2 0 00-2 2v12a2 2 0 012-2h6z"/></svg>書き方の例</button>
-    <button class="nav" id="navMore" title="使い方と詳しい操作"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>詳しい操作</button>
+    <a class="nav" id="navGuide" target="_blank" rel="noopener" title="30秒で解説" hidden><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5v5l4.5-2.5z"/></svg><span class="lb">30秒で解説</span><span class="ls">解説</span></a>
+    <button class="nav" id="navHow" title="書き方の例"><svg class="i" viewBox="0 0 24 24"><path d="M4 5h6a2 2 0 012 2v12a2 2 0 00-2-2H4zM20 5h-6a2 2 0 00-2 2v12a2 2 0 012-2h6z"/></svg><span class="lb">書き方の例</span><span class="ls">書き方</span></button>
+    <button class="nav" id="navMore" title="使い方と詳しい操作"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span class="lb">詳しい操作</span><span class="ls">操作</span></button>
     <div id="fbArea">
       <p class="cap">Vcheck について</p>
-      <button class="nav fbnav" id="navFb" aria-expanded="false" aria-controls="sideFb"><svg class="i" viewBox="0 0 24 24"><path d="M5 4h14a1 1 0 011 1v10a1 1 0 01-1 1H10l-5 4v-4H5a1 1 0 01-1-1V5a1 1 0 011-1z"/><path d="M8.5 8.5h7M8.5 11.5h4.5"/></svg>要望・不具合を送る</button>
+      <button class="nav fbnav" id="navFb" title="要望・不具合" aria-expanded="false" aria-controls="sideFb"><svg class="i" viewBox="0 0 24 24"><path d="M5 4h14a1 1 0 011 1v10a1 1 0 01-1 1H10l-5 4v-4H5a1 1 0 01-1-1V5a1 1 0 011-1z"/><path d="M8.5 8.5h7M8.5 11.5h4.5"/></svg><span class="lb">要望・不具合</span><span class="ls">要望</span></button>
       <div class="sidefb" id="sideFb" hidden>
         <textarea id="fbText" rows="3" placeholder="例：ボタンが小さくて押しにくい" aria-label="Vcheck への要望・不具合（作り手に届きます）"></textarea>
         <button class="btn line" id="fbSend">送る</button>
@@ -490,7 +505,7 @@ details[open] > summary::before { transform:rotate(90deg); }
 
 
     <details class="card overall" id="ovCard">
-      <summary><span class="ovh"><h2>全体修正</h2><span class="sub">時刻のないこと、「今後も」の決まりはここへ</span></span><span class="has" id="ovHas" hidden>入力あり</span></summary>
+      <summary><span class="ovh"><h2>全体修正</h2><span class="sub">全体的な大きな修正はこちらへ</span></span><span class="has" id="ovHas" hidden>入力あり</span></summary>
       <textarea id="ov" placeholder="例：後ろの場面から素材を持ってこない"></textarea>
       <div class="crow"><button class="btn quiet" id="ovatt"><svg class="i" viewBox="0 0 24 24"><path d="M21.4 11.1l-9.2 9.2a6 6 0 01-8.5-8.5l9.2-9.2a4 4 0 015.7 5.7l-9.2 9.2a2 2 0 01-2.8-2.8l8.5-8.5"/></svg>画像を付ける</button><span class="thumbs" id="ovthumbs"></span></div>
     </details>
@@ -509,7 +524,7 @@ details[open] > summary::before { transform:rotate(90deg); }
   </aside>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="ver">Vcheck 動画確認ページ v1.10.1</div>
+<div class="ver">Vcheck 動画確認ページ v1.11.0</div>
 <input type="file" id="pick" accept="image/*" multiple hidden>
 <script>
 // Vcheck 動画確認ページ v1.10.0（パソコンはコメント欄を右上に。左のバーは使い方と要望だけ）
@@ -799,6 +814,9 @@ showOv();
 // ---- 返し方：送信（受け取り口があるページ）とコピー（手で返す）を分けて表示する
 const RECEIVER = Q.get("to") || "https://script.google.com/macros/s/AKfycbwvGfAhFiiCpCXHqsWG-9pUg8dW_lAUeq3GvgfcA5GGjVkxiMTjJeihB6EO-IWKkLrnug/exec";   // 受け取り口（このページを置いた人の Google。ほかの人は自分の GitHub にコピーして自分の URL に替える）
 const sendBtn = $("send"), copyBtn = $("copy");
+// 左のバーの「30秒で解説」：使い方の動画（YouTube 限定公開）のリンク。空なら行を出さない
+const GUIDE_URL = "https://youtu.be/5pi0E_On9Q8";
+if (GUIDE_URL) { $("navGuide").href = GUIDE_URL; $("navGuide").hidden = false; }
 if (RECEIVER) {
   sendBtn.hidden = false;
   $("flow3").textContent = "終わったら「レビュー完了」";
@@ -881,7 +899,7 @@ $("clear").onclick = e => {      // 確認は2回押し（ブラウザの確認�
   items = []; save(); render(); armed = false; b.textContent = "コメントを全部消す"; toast("コメントを全部消しました");
 };
 
-// ---- コメント一覧（時刻を押すとその場面へ。「直す」で書き直し、「消す」は2回押し）
+// ---- コメント一覧（時刻を押すとその場面へ。「編集」で書き直し、「削除」は2回押し）
 function render() {
   list.innerHTML = "";
   const pass = it => filt === "all" || (filt === "unsent" && !it.sent) || (filt === "ink" && it.d) || (filt === "img" && it.images && it.images.length);
@@ -892,7 +910,7 @@ function render() {
   items.forEach((it, i) => {
     if (!pass(it)) return;
     const li = document.createElement("li"); if (it.sent) li.className = "sentrow";
-    const t = document.createElement("button"); t.className = "tbtn"; t.textContent = fmt(it.t); t.setAttribute("aria-label", fmt(it.t) + " の場面へ");
+    const t = document.createElement("button"); t.className = "tchip"; t.innerHTML = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 1.5v9l7.5-4.5z" fill="currentColor"/></svg>'; t.append(fmt(it.t)); t.setAttribute("aria-label", fmt(it.t) + " の場面へ"); t.title = "この場面へ";
     t.onclick = () => { if (!canTime()) { toast("動画の読み込みを待ってください"); return; } if (pinned !== null) unpin(false); P.seek(it.t); P.pause(); setTimeout(() => { P.pause(); shown = it.d || null; drawInk(); }, 300); };
     const c = document.createElement("div"); c.className = "ctext"; c.textContent = it.text;
     const bd = document.createElement("div"); bd.className = "badges";
@@ -900,18 +918,19 @@ function render() {
     if (it.sec) badge(it.sec);
     if (it.d) badge("描き込み");
     if (it.images && it.images.length) badge("画像 " + it.images.length);
-    if (RECEIVER) badge(it.sent ? "✓ 送信済み" : "未送信", it.sent ? "ok" : "wait");
+    const head = document.createElement("div"); head.className = "lhead"; head.append(t);
+    if (RECEIVER) { const st = document.createElement("span"); st.className = "st " + (it.sent ? "ok" : "wait"); st.textContent = it.sent ? "✓ 送信済み" : "未送信"; head.append(st); }
     const acts = document.createElement("div"); acts.className = "acts";
-    const ed = document.createElement("button"); ed.className = "btn quiet"; ed.textContent = "直す";
-    const del = document.createElement("button"); del.className = "btn danger"; del.textContent = "消す";
+    const ed = document.createElement("button"); ed.className = "btn quiet"; ed.textContent = "編集";
+    const del = document.createElement("button"); del.className = "btn danger"; del.textContent = "削除";
     let delArmed = false;
     del.onclick = () => {
-      if (!delArmed) { delArmed = true; del.textContent = "もう一度で消す"; setTimeout(() => { delArmed = false; del.textContent = "消す"; }, 3000); return; }
-      items.splice(i, 1); save(); render(); toast("コメントを消しました");
+      if (!delArmed) { delArmed = true; del.textContent = "もう一度で削除"; setTimeout(() => { delArmed = false; del.textContent = "削除"; }, 3000); return; }
+      items.splice(i, 1); save(); render(); toast("コメントを削除しました");
     };
     ed.onclick = () => {
       const w = document.createElement("div"); w.className = "edit";
-      const ta = document.createElement("textarea"); ta.value = it.text; ta.setAttribute("aria-label", "コメントを直す");
+      const ta = document.createElement("textarea"); ta.value = it.text; ta.setAttribute("aria-label", "コメントを編集");
       const row = document.createElement("div"); row.className = "acts"; row.style.marginTop = "6px";
       const ok = document.createElement("button"); ok.className = "btn line"; ok.textContent = "保存";
       const no = document.createElement("button"); no.className = "btn quiet"; no.textContent = "やめる";
@@ -920,13 +939,13 @@ function render() {
       no.onclick = () => render();
       ok.onclick = () => {
         const nt = ta.value.trim();
-        if (!nt) { toast("空にはできません。消す時は「消す」を押してください"); return; }
-        if (nt !== it.text) { it.text = nt; it.sent = false; save(); toast("直しました"); }
+        if (!nt) { toast("空にはできません。削除する時は「削除」を押してください"); return; }
+        if (nt !== it.text) { it.text = nt; it.sent = false; save(); toast("編集しました"); }
         render();
       };
     };
     acts.append(ed, del);
-    li.append(t, c, bd, acts); list.append(li);
+    li.append(head, c); if (bd.childElementCount) li.append(bd); li.append(acts); list.append(li);
   });
   updState();
 }
@@ -1046,9 +1065,12 @@ SECTIONS.forEach(sc => {
 });
 $("secCap").hidden = !SECTIONS.length;
 // ---- Vcheck への要望（動画へのコメントとは別。同じ受け取り口に「vcheck-request」として届く）
-const FEEDBACK_ID = "vcheck-request", VER = "1.10.1";
+const FEEDBACK_ID = "vcheck-request", VER = "1.11.0";
 if (!RECEIVER) $("fbArea").hidden = true;      // 送り先が無いページでは出さない
-$("navFb").onclick = () => { const on = $("sideFb").hidden; $("sideFb").hidden = !on; $("navFb").setAttribute("aria-expanded", String(on)); if (on) setTimeout(() => $("fbText").focus(), 30); };
+$("navFb").onclick = () => {
+  const wasMini = WIDE() && document.body.classList.contains("mini");
+  if (wasMini) setMini(false);                     // 細い形の時は、広げて入力欄を開く
+  const on = wasMini || $("sideFb").hidden; $("sideFb").hidden = !on; $("navFb").setAttribute("aria-expanded", String(on)); if (on) setTimeout(() => $("fbText").focus(), 30); };
 $("fbSend").onclick = async () => {
   const t = $("fbText").value.trim(), b = $("fbSend"), r = $("fbResult");
   if (!t) { toast("要望を書いてください"); $("fbText").focus(); return; }
@@ -1083,7 +1105,19 @@ function goTo(id) {
   document.querySelectorAll(".side a").forEach(a => a.classList.toggle("on", a.dataset.go === id));
 }
 function closeMenu() { document.body.classList.remove("menu"); $("scrim").hidden = true; }
-$("menuBtn").onclick = () => { const on = !document.body.classList.contains("menu"); document.body.classList.toggle("menu", on); $("scrim").hidden = !on; };
+// ≡：広い画面は左のバーを細く／太く（選んだ形を覚える。はじめは細い形）。狭い画面は横から出す
+const WIDE = () => innerWidth >= 1200;
+function setMini(on, keep = true) {
+  document.body.classList.toggle("mini", on);
+  if (WIDE()) $("menuBtn").setAttribute("aria-expanded", String(!on));
+  if (keep) try { localStorage.setItem("vcheck:sideMini", on ? "1" : "0"); } catch (e) {}
+}
+let miniSaved = null; try { miniSaved = localStorage.getItem("vcheck:sideMini"); } catch (e) {}
+setMini(miniSaved !== "0", false);
+$("menuBtn").onclick = () => {
+  if (WIDE()) { setMini(!document.body.classList.contains("mini")); return; }
+  const on = !document.body.classList.contains("menu"); document.body.classList.toggle("menu", on); $("scrim").hidden = !on; $("menuBtn").setAttribute("aria-expanded", String(on));
+};
 $("scrim").onclick = closeMenu;
 document.querySelectorAll(".side a[data-go]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); closeMenu(); goTo(a.dataset.go); }));
 function openHow() { $("more").open = true; closeMenu(); setTimeout(() => goTo("howBox"), 30); }
