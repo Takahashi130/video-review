@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&display=swap" rel="stylesheet">
 <style>
-/* Vcheck（v1.9.0）：白を土台に、色はティールだけ（動画配信サイトのような落ち着いた作り）。
+/* Vcheck（v1.10.0）：白を土台に、色はティールだけ（動画配信サイトのような落ち着いた作り）。
    ティール #029AAA はロゴ・線・飾り、文字に使う時は #027A87（白の上 5.08:1）、淡いティールの上は #01646F。
    イエロー #E5E647 は選んだ状態・時刻の強調だけ。主なボタンはティール → 濃紺 #06304F のグラデーション。 */
 :root {
@@ -179,12 +179,18 @@ details[open] > summary::before { transform:rotate(90deg); }
 .more .grp { border-top:1px solid var(--line); padding:10px 0 2px; }
 .more .grp h3 { font-size:13px; margin:0 0 8px; color:var(--sub); }
 .more .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.draw { border-top:1px solid var(--line); margin-top:10px; padding-top:10px; }
+.draw .row { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+.draw .row + .row { margin-top:8px; }
+.draw .btn { padding:6px 8px; gap:3px; font-size:13px; }
+.draw .btn svg.i { width:18px; height:18px; }
+#drawOpen.on { background:var(--tint); color:var(--teal-deep); }
 .draw .dot { width:44px; height:44px; border-radius:50%; padding:0; border:3px solid #fff; box-shadow:0 0 0 1.5px var(--line); background:var(--c); }
 .draw .dot.on { box-shadow:0 0 0 3px var(--navy); }
 .keys { font-size:13px; color:var(--sub); margin:0; }
 .keys kbd { font-family:inherit; font-size:12px; border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:0 5px; background:#fff; color:var(--ink); }
 
-/* 右：返す（配信サイトの広告枠の位置）・絞り込みの札・コメント一覧（おすすめ一覧の形） */
+/* 右：コメントを書く（動画を見ながら）・全体修正・絞り込みの札・コメント一覧。動画の下：レビューが終わったら */
 .ret { padding:0; overflow:hidden; background:#fff; }
 .ret h2 { margin:0 0 12px; }
 .sendrow .note { margin:-2px 0 6px; font-size:13px; color:var(--sub); line-height:1.5; }
@@ -193,6 +199,7 @@ details[open] > summary::before { transform:rotate(90deg); }
 .ret .band h2 { margin:0; font-size:17px; }
 .ret .band p { margin:2px 0 0; font-size:13px; color:var(--sub); }
 .ret .body { background:#fff; padding:14px 16px 16px; }
+@media (min-width: 1001px) { .ret .body > * { max-width:600px; } }   /* 動画の下で横に伸びすぎないように */
 .field { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; font-size:13px; color:var(--sub); }
 .field input { font-size:16px; padding:10px 12px; border:1.5px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); min-height:44px; }
 .sendrow { display:flex; flex-direction:column; gap:8px; }
@@ -226,10 +233,18 @@ details[open] > summary::before { transform:rotate(90deg); }
 #list li .edit { grid-column:2; }
 #list li .edit textarea { width:100%; min-height:72px; font-size:16px; padding:8px 10px; border:1.5px solid var(--teal-ink); border-radius:10px; resize:vertical; }
 .empty { color:var(--sub); font-size:14px; margin:6px 0 0; }
-.overall .sub { font-size:13px; color:var(--sub); margin:-6px 0 0; }
-.fb summary { font-size:14px; color:var(--sub); min-height:40px; }
-.fb .sub { font-size:13px; color:var(--sub); margin:4px 0 0; }
-.fb textarea { width:100%; min-height:76px; resize:vertical; font-size:16px; padding:10px 12px; border:1.5px solid var(--line); border-radius:10px; background:#fff; margin-top:8px; }
+.overall .sub { font-size:13px; color:var(--sub); font-weight:400; }
+.overall > summary { align-items:flex-start; }
+.overall > summary::before { margin-top:2px; }
+.overall .ovh { display:flex; flex-direction:column; gap:4px; flex:1; min-width:0; }
+.overall .ovh h2 { margin:0; }
+.overall .has { flex:none; font-size:12px; font-weight:800; color:var(--navy); background:var(--yellow); border-radius:999px; padding:2px 10px; }
+.side button.fbnav { font-size:14px; color:var(--sub); }
+.side button.fbnav[aria-expanded="true"] { color:var(--teal-deep); }
+.sidefb { display:flex; flex-direction:column; gap:8px; padding:0 6px 8px; }
+.sidefb .btn { align-self:flex-end; min-width:88px; }
+.sidefb .result { margin:0; font-size:13px; }
+.sidefb textarea { width:100%; min-height:72px; resize:vertical; font-size:16px; padding:8px 10px; border:1.5px solid var(--line); border-radius:10px; background:#fff; }
 .thumbs { display:flex; gap:6px; flex-wrap:wrap; }
 .thumbs img { height:44px; border-radius:6px; border:1px solid var(--line); cursor:pointer; }
 
@@ -252,6 +267,8 @@ details[open] > summary::before { transform:rotate(90deg); }
   .main, .aside { display:contents; }
   .main > *:not(.player), .aside > * { margin:0 12px; }
   .player { position:sticky; top:0; z-index:20; order:0; }
+  /* スマホの並びは前と同じ：動画 → 題 → コメントを書く → 詳しい操作 → レビューが終わったら → 全体修正 → 一覧 */
+  .info { order:1; } #composer { order:2; } #more { order:3; } #returnCard { order:4; } #ovCard { order:5; } #filters { order:6; } #listCard { order:7; }
   .top { position:relative; }
   .search { display:none; }
   .info { padding:4px 0 0; }
@@ -284,6 +301,7 @@ details[open] > summary::before { transform:rotate(90deg); }
 }
 @media (min-width: 1001px) {
   #list { max-height:56vh; overflow:auto; padding-right:4px; }
+  #toReturn { display:none; }   /* すぐ下に「レビューが終わったら」があるので二重にしない */
 }
 </style>
 </head>
@@ -293,7 +311,7 @@ details[open] > summary::before { transform:rotate(90deg); }
   <a class="logo" href="#" id="logo" aria-label="Vcheck 動画確認"><b>V<i></i>check</b><small>動画確認</small></a>
   <form class="search" id="search" role="search">
     <svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
-    <input id="url" placeholder="YouTube のリンクを貼って、別の動画を開く" autocomplete="off" aria-label="YouTube のリンク">
+    <input id="url" placeholder="YouTube のリンクを貼って、別の動画レビューを作成" autocomplete="off" aria-label="YouTube のリンク">
     <button type="submit" id="go">開く</button>
   </form>
   <button class="me" id="nameChip" aria-label="コメントに付く名前"><span class="avatar" id="avatar">?</span><span class="nm" id="chipName">名前を入れる</span></button>
@@ -301,17 +319,20 @@ details[open] > summary::before { transform:rotate(90deg); }
 <div class="scrim" id="scrim" hidden></div>
 <div class="wrap">
   <nav class="side" id="side" aria-label="ページの中">
-    <a href="#player" class="on" data-go="player"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5v5l4.5-2.5z"/></svg>動画を見る</a>
-    <a href="#composer" data-go="composer"><svg class="i" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>コメントを書く</a>
-    <a href="#listHead" data-go="listHead"><svg class="i" viewBox="0 0 24 24"><path d="M8 7h12M8 12h12M8 17h12"/><circle cx="4" cy="7" r=".8"/><circle cx="4" cy="12" r=".8"/><circle cx="4" cy="17" r=".8"/></svg>コメント一覧</a>
-    <a href="#ovCard" data-go="ovCard"><svg class="i" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg>全体修正</a>
-    <a href="#returnCard" data-go="returnCard"><svg class="i" viewBox="0 0 24 24"><path d="M21 3L10 14"/><path d="M21 3l-7 18-4-7-7-4z"/></svg>レビュー完了</a>
-    <hr>
     <p class="cap" id="secCap" hidden>区間</p>
     <div id="sideSecs"></div>
     <p class="cap">使い方</p>
     <button class="nav" id="navHow"><svg class="i" viewBox="0 0 24 24"><path d="M4 5h6a2 2 0 012 2v12a2 2 0 00-2-2H4zM20 5h-6a2 2 0 00-2 2v12a2 2 0 012-2h6z"/></svg>書き方の例</button>
     <button class="nav" id="navMore" title="使い方と詳しい操作"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>詳しい操作</button>
+    <div id="fbArea">
+      <p class="cap">Vcheck について</p>
+      <button class="nav fbnav" id="navFb" aria-expanded="false" aria-controls="sideFb"><svg class="i" viewBox="0 0 24 24"><path d="M5 4h14a1 1 0 011 1v10a1 1 0 01-1 1H10l-5 4v-4H5a1 1 0 01-1-1V5a1 1 0 011-1z"/><path d="M8.5 8.5h7M8.5 11.5h4.5"/></svg>要望・不具合を送る</button>
+      <div class="sidefb" id="sideFb" hidden>
+        <textarea id="fbText" rows="3" placeholder="例：ボタンが小さくて押しにくい" aria-label="Vcheck への要望・不具合（作り手に届きます）"></textarea>
+        <button class="btn line" id="fbSend">送る</button>
+        <p class="result" id="fbResult" role="status" hidden></p>
+      </div>
+    </div>
   </nav>
 
   <main class="main">
@@ -365,27 +386,29 @@ details[open] > summary::before { transform:rotate(90deg); }
       </div>
     </section>
 
-    <div class="card composer" id="composer">
-      <h2>コメントを書く</h2>
-      <div class="when"><span class="stamp" id="stamp" hidden></span><span id="whenNote">「この場面にコメント」をクリックしてください</span></div>
-      <div class="cbox">
-        <textarea id="box" rows="3" placeholder="修正してほしい内容" autocomplete="off" enterkeyhint="enter" aria-label="コメント"></textarea>
-        <div class="cbar">
-          <button class="ic" id="att" aria-label="画像を付ける" title="画像を付ける"><svg class="i" viewBox="0 0 24 24"><path d="M21.4 11.1l-9.2 9.2a6 6 0 01-8.5-8.5l9.2-9.2a4 4 0 015.7 5.7l-9.2 9.2a2 2 0 01-2.8-2.8l8.5-8.5"/></svg><span class="dotn" id="attN" hidden></span></button>
-          <button class="ic" id="drawOpen" aria-label="画面に描く" title="画面に描く"><svg class="i" viewBox="0 0 24 24"><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
-          <span class="stamp mini" id="stamp2" aria-hidden="true"></span>
-          <span class="grow"></span>
-          <button class="ic" id="mic" aria-label="声で入れる" title="声で入れる" hidden><svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button>
-          <button class="ic" id="cancel" aria-label="やめる" title="やめる（書いた文を消して戻る）" hidden><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-          <button class="btn primary" id="add" disabled>追加</button>
+    <div class="card ret" id="returnCard">
+      <div class="body">
+        <h2>レビューが終わったら</h2>
+        <div class="sendrow">
+          <button class="btn done big" id="send" hidden><svg class="i" viewBox="0 0 24 24"><path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5L3 9.5z"/></svg><span class="lbl">レビュー完了</span></button>
+          <p class="note" id="returnNote"></p>
+          <button class="btn big line" id="copy"><svg class="i" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="3"/><path d="M15.5 8.5V6.5a3 3 0 0 0-3-3h-6a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h2"/></svg>コメントを全てコピー</button>
         </div>
+        <p class="state" id="saveState" role="status"></p>
+        <p class="result" id="result" role="status" hidden></p>
+        <textarea id="copyBox" readonly hidden aria-label="コピーする文"></textarea>
+        <details class="others"><summary>コメント保存と削除</summary>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+            <button class="btn quiet" id="dl" title="この端末にコメントを文字のファイル（.txt）で保存します"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19h14"/></svg>コメントを保存</button>
+            <button class="btn danger" id="clear">コメントを全部消す</button>
+          </div>
+        </details>
       </div>
-      <p class="hint" id="chint" hidden></p>
-      <div class="chips" id="secs" style="margin-top:10px"></div>
     </div>
 
+
     <details class="card more" id="more">
-      <summary>使い方と詳しい操作（書き方の例・コマ送り・画面に描く）</summary>
+      <summary>使い方と詳しい操作（書き方の例・コマ送り）</summary>
       <div class="grp">
         <h3>使い方（3つの手順）</h3>
         <ol class="flow" id="flow">
@@ -415,24 +438,6 @@ details[open] > summary::before { transform:rotate(90deg); }
           <button class="btn" id="f1">1コマ進む ›</button>
         </div>
       </div>
-      <div class="grp draw" id="draw">
-        <h3>画面に描く（コメントを書いている間だけ）</h3>
-        <div class="row">
-          <button class="btn" data-tool="p"><svg class="i" viewBox="0 0 24 24"><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>ペン</button>
-          <button class="btn" data-tool="a"><svg class="i" viewBox="0 0 24 24"><path d="M5 19L19 5M10 5h9v9"/></svg>矢印</button>
-          <button class="btn" data-tool="r"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1.5"/></svg>四角</button>
-          <button class="btn" data-tool="o"><svg class="i" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8.5" ry="7.5"/></svg>丸</button>
-          <button class="btn" data-tool="t"><svg class="i" viewBox="0 0 24 24"><path d="M5 7V5h14v2M12 5v14M9 19h6"/></svg>文字</button>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <button class="dot" data-color="y" style="--c:#f2d33a" aria-label="黄"></button>
-          <button class="dot" data-color="r" style="--c:#ff4d4d" aria-label="赤"></button>
-          <button class="dot" data-color="w" style="--c:#ffffff" aria-label="白"></button>
-          <button class="btn quiet" id="undo"><svg class="i" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg>1つ戻す</button>
-          <button class="btn quiet" id="wipe"><svg class="i" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>全部消す</button>
-        </div>
-        <p class="hint" id="drawNote"></p>
-      </div>
       <div class="grp" id="kbd">
         <h3>キーボード（パソコン）</h3>
         <p class="keys"><kbd>スペース</kbd> 再生・停止　<kbd>←</kbd><kbd>→</kbd> 1コマ　<kbd>Shift</kbd>＋<kbd>←</kbd><kbd>→</kbd> 5秒<br>
@@ -446,38 +451,52 @@ details[open] > summary::before { transform:rotate(90deg); }
   </main>
 
   <aside class="aside">
-    <div class="card ret" id="returnCard">
-      <div class="body">
-        <h2>レビューが終わったら</h2>
-        <div class="sendrow">
-          <button class="btn done big" id="send" hidden><svg class="i" viewBox="0 0 24 24"><path d="M21 3L10.5 13.5"/><path d="M21 3l-6.5 18-4-7.5L3 9.5z"/></svg><span class="lbl">レビュー完了</span></button>
-          <p class="note" id="returnNote"></p>
-          <button class="btn big line" id="copy"><svg class="i" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="3"/><path d="M15.5 8.5V6.5a3 3 0 0 0-3-3h-6a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h2"/></svg>コメントを全てコピー</button>
+    <div class="card composer" id="composer">
+      <h2>コメントを書く</h2>
+      <div class="when"><span class="stamp" id="stamp" hidden></span><span id="whenNote">「この場面にコメント」をクリックしてください</span></div>
+      <div class="cbox">
+        <textarea id="box" rows="3" placeholder="修正してほしい内容" autocomplete="off" enterkeyhint="enter" aria-label="コメント"></textarea>
+        <div class="cbar">
+          <button class="ic" id="att" aria-label="画像を付ける" title="画像を付ける"><svg class="i" viewBox="0 0 24 24"><path d="M21.4 11.1l-9.2 9.2a6 6 0 01-8.5-8.5l9.2-9.2a4 4 0 015.7 5.7l-9.2 9.2a2 2 0 01-2.8-2.8l8.5-8.5"/></svg><span class="dotn" id="attN" hidden></span></button>
+          <button class="ic" id="drawOpen" aria-label="画面に描く" title="画面に描く"><svg class="i" viewBox="0 0 24 24"><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
+          <span class="stamp mini" id="stamp2" aria-hidden="true"></span>
+          <span class="grow"></span>
+          <button class="ic" id="mic" aria-label="声で入れる" title="声で入れる" hidden><svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button>
+          <button class="ic" id="cancel" aria-label="やめる" title="やめる（書いた文を消して戻る）" hidden><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          <button class="btn primary" id="add" disabled>追加</button>
         </div>
-        <p class="state" id="saveState" role="status"></p>
-        <p class="result" id="result" role="status" hidden></p>
-        <textarea id="copyBox" readonly hidden aria-label="コピーする文"></textarea>
-        <details class="others"><summary>コメント保存と削除</summary>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
-            <button class="btn quiet" id="dl" title="この端末にコメントを文字のファイル（.txt）で保存します"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19h14"/></svg>コメントを保存</button>
-            <button class="btn danger" id="clear">コメントを全部消す</button>
-          </div>
-        </details>
       </div>
+      <p class="hint" id="chint" hidden></p>
+    <div class="draw" id="draw" hidden>
+      <div class="row">
+        <button class="btn" data-tool="p"><svg class="i" viewBox="0 0 24 24"><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>ペン</button>
+        <button class="btn" data-tool="a"><svg class="i" viewBox="0 0 24 24"><path d="M5 19L19 5M10 5h9v9"/></svg>矢印</button>
+        <button class="btn" data-tool="r"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1.5"/></svg>四角</button>
+        <button class="btn" data-tool="o"><svg class="i" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8.5" ry="7.5"/></svg>丸</button>
+        <button class="btn" data-tool="t"><svg class="i" viewBox="0 0 24 24"><path d="M5 7V5h14v2M12 5v14M9 19h6"/></svg>文字</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="dot" data-color="y" style="--c:#f2d33a" aria-label="黄"></button>
+        <button class="dot" data-color="r" style="--c:#ff4d4d" aria-label="赤"></button>
+        <button class="dot" data-color="w" style="--c:#ffffff" aria-label="白"></button>
+        <button class="btn quiet" id="undo"><svg class="i" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg>1つ戻す</button>
+        <button class="btn quiet" id="wipe"><svg class="i" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>全部消す</button>
+      </div>
+      <p class="hint" id="drawNote"></p>
+    </div>
+      <div class="chips" id="secs" style="margin-top:10px"></div>
     </div>
 
-    <div class="card overall" id="ovCard">
-      <h2>全体修正</h2>
-      <p class="sub">時刻のないこと、「今後も」の決まりはここへ</p>
+
+    <details class="card overall" id="ovCard">
+      <summary><span class="ovh"><h2>全体修正</h2><span class="sub">時刻のないこと、「今後も」の決まりはここへ</span></span><span class="has" id="ovHas" hidden>入力あり</span></summary>
       <textarea id="ov" placeholder="例：後ろの場面から素材を持ってこない"></textarea>
       <div class="crow"><button class="btn quiet" id="ovatt"><svg class="i" viewBox="0 0 24 24"><path d="M21.4 11.1l-9.2 9.2a6 6 0 01-8.5-8.5l9.2-9.2a4 4 0 015.7 5.7l-9.2 9.2a2 2 0 01-2.8-2.8l8.5-8.5"/></svg>画像を付ける</button><span class="thumbs" id="ovthumbs"></span></div>
-    </div>
+    </details>
 
     <div class="chips" id="filters" role="group" aria-label="コメントの絞り込み">
       <button class="chip" data-f="all" aria-pressed="true">すべて</button>
       <button class="chip" data-f="unsent" aria-pressed="false">未送信</button>
-      <button class="chip" data-f="ink" aria-pressed="false">描き込み</button>
-      <button class="chip" data-f="img" aria-pressed="false">画像</button>
     </div>
     <div id="listCard">
       <div class="listhead" id="listHead"><h2>コメント</h2><span id="count"></span></div>
@@ -486,20 +505,13 @@ details[open] > summary::before { transform:rotate(90deg); }
     </div>
 
 
-    <details class="card fb" id="fbCard">
-      <summary>Vcheck への要望・不具合を送る</summary>
-      <p class="sub">動画へのコメントではなく、このページ（Vcheck）をもっと使いやすくするための声です。Vcheck の作り手に届きます。</p>
-      <textarea id="fbText" placeholder="例：ボタンが小さくて押しにくい" aria-label="Vcheck への要望"></textarea>
-      <div class="crow"><button class="btn line" id="fbSend">要望を送る</button></div>
-      <p class="result" id="fbResult" role="status" hidden></p>
-    </details>
   </aside>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="ver">Vcheck 動画確認ページ v1.9.0</div>
+<div class="ver">Vcheck 動画確認ページ v1.10.0</div>
 <input type="file" id="pick" accept="image/*" multiple hidden>
 <script>
-// Vcheck 動画確認ページ v1.9.0（画面の作りを動画配信サイト風に。動きは v1.8.0 と同じ）
+// Vcheck 動画確認ページ v1.10.0（パソコンはコメント欄を右上に。左のバーは使い方と要望だけ）
 // 使い方：https://<ユーザー>.github.io/video-review/?v=<YouTube の動画ID か URL>&title=<題>&fps=29.97&ch=<秒>:<区間名>,…&to=<受け取り口の URL>
 // このページには番組の中身（字幕・文字起こし）は置かない。どの動画かはリンクで渡す。コメントは見た人のブラウザに残り、「送信」した時だけ受け取り口に届く。
 const Q = new URLSearchParams(location.search);
@@ -594,7 +606,7 @@ function pin() {
 }
 function unpin(resume) {
   if (listening && rec) { try { rec.abort(); } catch (e) {} }
-  box.value = ""; fitBox(); pinned = null; pendImgs = []; showPend(); inkMode(false); refreshComposer();
+  box.value = ""; fitBox(); pinned = null; pendImgs = []; showPend(); inkMode(false); showDraw(false); refreshComposer();
   box.blur(); if (resume) P.play();
 }
 function hasDraft() { return !!(box.value.trim() || shapes.length || pendImgs.length); }
@@ -628,7 +640,12 @@ function commit() {
 function fitBox() { box.style.height = "auto"; box.style.height = Math.min(box.scrollHeight + 2, 180) + "px"; }
 function scrollToComposer() {
   const c = $("composer");
-  requestAnimationFrame(() => { const top = c.getBoundingClientRect().top + scrollY - (innerWidth <= 1000 ? $("player").offsetHeight + 8 : 16); if (Math.abs(scrollY - top) > 4) scrollTo({ top: Math.max(0, top), behavior: "smooth" }); });
+  requestAnimationFrame(() => {
+    const r = c.getBoundingClientRect(), headH = document.querySelector(".top").offsetHeight;
+    if (innerWidth > 1000 && r.top >= headH && r.top < innerHeight - 160) return;     // パソコンで見えている時はそのまま
+    const top = r.top + scrollY - (innerWidth <= 1000 ? $("player").offsetHeight + 8 : headH + 12);
+    if (Math.abs(scrollY - top) > 4) scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  });
 }
 $("write").onclick = () => { if (pinned === null && !pin()) return; box.focus({ preventScroll: true }); scrollToComposer(); };
 $("add").onclick = () => commit();
@@ -642,7 +659,13 @@ box.addEventListener("keydown", e => {
   if (e.key === "Escape") { e.stopPropagation(); unpin(false); return; }
   if (e.key === "Enter" && !e.shiftKey && !TOUCH) { e.preventDefault(); e.stopPropagation(); commit(); }   // スマホの Enter は改行
 });
-$("drawOpen").onclick = () => { if (pinned === null && !pin()) return; $("more").open = true; setTimeout(() => $("draw").scrollIntoView({ behavior: "smooth", block: "nearest" }), 50); };
+function showDraw(on) { $("draw").hidden = !on; $("drawOpen").classList.toggle("on", on); $("drawOpen").setAttribute("aria-pressed", String(on)); }
+$("drawOpen").onclick = () => {
+  if (!$("draw").hidden) { showDraw(false); return; }
+  if (pinned === null && !pin()) return;
+  showDraw(true); if (TOUCH) box.blur();             // スマホはキーボードを下げて、動画の上に描けるようにする
+  setTimeout(() => $("draw").scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+};
 // キーボードの高さに合わせる（見えている高さを CSS に渡す）
 function vv() { const h = window.visualViewport ? visualViewport.height : innerHeight; document.documentElement.style.setProperty("--vvh", h + "px"); }
 vv(); if (window.visualViewport) visualViewport.addEventListener("resize", () => { vv(); if (document.body.classList.contains("typing")) scrollToComposer(); });
@@ -726,7 +749,7 @@ try { overall = Object.assign(overall, JSON.parse(localStorage.getItem(KEY + ":o
 const ov = $("ov"), pick = $("pick");
 ov.value = overall.text || "";
 function saveOverall() { try { localStorage.setItem(KEY + ":overall", JSON.stringify(overall)); } catch (e) { toast("画像が多くて保存しきれません。送信してください", 3000); } }
-ov.addEventListener("input", () => { overall.text = ov.value; saveOverall(); updState(); });
+ov.addEventListener("input", () => { overall.text = ov.value; saveOverall(); ovMark(); updState(); });
 async function shrink(file) {
   const img = await createImageBitmap(file);
   const k = Math.min(1, 1280 / Math.max(img.width, img.height));
@@ -739,7 +762,8 @@ function thumbs(el, arr, onDel) {
   el.innerHTML = "";
   arr.forEach((u, i) => { const im = document.createElement("img"); im.src = u; im.alt = "付けた画像（押すと外す）"; im.title = "押すと外す"; im.onclick = () => onDel(i); el.append(im); });
 }
-function showOv() { thumbs($("ovthumbs"), overall.images, i => { overall.images.splice(i, 1); saveOverall(); showOv(); updState(); }); }
+function ovMark() { $("ovHas").hidden = !(overall.text || overall.images.length); }
+function showOv() { ovMark(); thumbs($("ovthumbs"), overall.images, i => { overall.images.splice(i, 1); saveOverall(); showOv(); updState(); }); }
 function showPend() { const n = $("attN"); n.hidden = !pendImgs.length; n.textContent = pendImgs.length; $("att").setAttribute("aria-label", pendImgs.length ? "画像を付ける（" + pendImgs.length + "枚付いています）" : "画像を付ける"); }
 async function addImages(files, where) {
   let n = 0;
@@ -1012,20 +1036,21 @@ SECTIONS.forEach(sc => {
 });
 $("secCap").hidden = !SECTIONS.length;
 // ---- Vcheck への要望（動画へのコメントとは別。同じ受け取り口に「vcheck-request」として届く）
-const FEEDBACK_ID = "vcheck-request";
-if (!RECEIVER) $("fbCard").hidden = true;      // 送り先が無いページでは出さない
+const FEEDBACK_ID = "vcheck-request", VER = "1.10.0";
+if (!RECEIVER) $("fbArea").hidden = true;      // 送り先が無いページでは出さない
+$("navFb").onclick = () => { const on = $("sideFb").hidden; $("sideFb").hidden = !on; $("navFb").setAttribute("aria-expanded", String(on)); if (on) setTimeout(() => $("fbText").focus(), 30); };
 $("fbSend").onclick = async () => {
   const t = $("fbText").value.trim(), b = $("fbSend"), r = $("fbResult");
   if (!t) { toast("要望を書いてください"); $("fbText").focus(); return; }
   b.disabled = true; b.textContent = "送信中…";
   const body = { video: FEEDBACK_ID, title: "Vcheck への要望", name: nameEl.value.trim(),
-    overall: { text: t + "\n（見ていた動画：" + (TITLE || VID) + "／" + (TOUCH ? "スマホ・タブレット" : "パソコン") + "／Vcheck v1.9.0）", images: [] }, items: [] };
+    overall: { text: t + "\n（見ていた動画：" + (TITLE || VID) + "／" + (TOUCH ? "スマホ・タブレット" : "パソコン") + "／Vcheck v" + VER + "）", images: [] }, items: [] };
   try {
     const res = await fetch(RECEIVER, { method: "POST", body: JSON.stringify(body) });
     const j = await res.json(); if (!j.ok) throw new Error("ng");
     $("fbText").value = ""; r.hidden = false; r.className = "result ok"; r.textContent = "送りました。ありがとうございます";
   } catch (e) { r.hidden = false; r.className = "result ng"; r.textContent = "送れませんでした。電波を確かめて、もう一度押してください"; }
-  b.disabled = false; b.textContent = "要望を送る";
+  b.disabled = false; b.textContent = "送る";
 };
 
 // ---- 画面の作り（左のメニュー・名前・題の下の情報・丸いボタン・絞り込み）
@@ -1063,7 +1088,7 @@ $("ytOpen").href = "https://www.youtube.com/watch?v=" + VID;
 $("shareBtn").onclick = async () => { toast(await copyText(location.href) ? "このページのリンクをコピーしました。確認してほしい人に送れます" : "リンクをコピーできませんでした。アドレス欄から長押しでコピーしてください", 2600); };
 function showName() { const v = nameEl.value.trim(); $("avatar").textContent = v ? v.slice(0, 1) : "?"; $("chipName").textContent = v || "名前を入れる"; }
 nameEl.addEventListener("input", showName);
-$("nameChip").onclick = () => { goTo("returnCard"); setTimeout(() => nameEl.focus({ preventScroll: true }), 350); };
+$("nameChip").onclick = () => { goTo("info"); setTimeout(() => nameEl.focus({ preventScroll: true }), 350); };
 document.querySelectorAll("#filters .chip").forEach(c => c.onclick = () => {
   filt = c.dataset.f; document.querySelectorAll("#filters .chip").forEach(x => x.setAttribute("aria-pressed", String(x === c))); render();
 });
