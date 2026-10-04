@@ -586,7 +586,7 @@ details[open] > summary::before { transform:rotate(90deg); }
   </aside>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="ver">Vcheck 動画確認ページ v1.16.1</div>
+<div class="ver">Vcheck 動画確認ページ v1.16.2</div>
 <input type="file" id="pick" accept="image/*" multiple hidden>
 <script>
 // Vcheck 動画確認ページ（版はいちばん下の .ver と VER）
@@ -835,7 +835,9 @@ function micStop() { listening = false; mic.classList.remove("on"); mic.setAttri
 let micWant = false, micT0 = 0, micLast = 0, micTimer = null;
 const MIC_QUIET = 12000, MIC_MAX = 180000;   // 黙ったまま12秒、または全部で3分で止める
 function micStart() {
-  rec = new SR(); rec.lang = "ja-JP"; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
+  // Android の Chrome は continuous だと結果ごとに「それまでの全文」を返し、足すと同じ言葉が重なる（要望「Pixel でマイクがバグる」）。
+  // Android だけ一言ずつ聞き、切れたら onend で聞き直す（micBase に前の文を引き継ぐ）
+  rec = new SR(); rec.lang = "ja-JP"; rec.interimResults = true; rec.continuous = !/Android/i.test(navigator.userAgent); rec.maxAlternatives = 1;
   micBase = box.value ? box.value.replace(/\s+$/, "") + " " : "";
   rec.onresult = e => {
     let fin = "", mid = "";
@@ -1162,7 +1164,7 @@ SECTIONS.forEach(sc => {
 });
 $("secCap").hidden = !SECTIONS.length;
 // ---- Vcheck への要望（動画へのコメントとは別。同じ受け取り口に「vcheck-request」として届く）
-const FEEDBACK_ID = "vcheck-request", VER = "1.16.1";
+const FEEDBACK_ID = "vcheck-request", VER = "1.16.2";
 if (!RECEIVER) $("fbArea").hidden = true;      // 送り先が無いページでは出さない
 $("navFb").onclick = () => {
   const wasMini = WIDE() && document.body.classList.contains("mini");
