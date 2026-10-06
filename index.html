@@ -283,6 +283,35 @@ details[open] > summary::before { transform:rotate(90deg); }
 .overall .ovh { display:flex; flex-direction:column; gap:4px; flex:1; min-width:0; }
 .overall .ovh h2 { margin:0; }
 .overall .has { flex:none; font-size:12px; font-weight:800; color:var(--navy); background:var(--yellow); border-radius:999px; padding:2px 10px; }
+/* サムネ・題（v1.17） */
+.thc .cands { display:grid; gap:10px; }
+.thc .cand { border:1px solid var(--line); border-radius:10px; padding:8px; display:grid; grid-template-columns:128px minmax(0,1fr); gap:10px; align-items:start; }
+.thc .cand.best { border:2px solid var(--teal-ink); background:var(--tint); padding:7px; }
+.thc .cand img { width:128px; aspect-ratio:16/9; object-fit:cover; border-radius:6px; cursor:zoom-in; background:#111; display:block; }
+.thc .ck { font-weight:800; font-size:14px; }
+.thc .tt { font-size:13px; line-height:1.45; margin:2px 0 6px; overflow-wrap:anywhere; }
+.thc .marks { display:flex; gap:4px; flex-wrap:wrap; }
+.thc .marks .chip { min-height:32px; padding:0 10px; }
+.thc .marks .bestbtn[aria-pressed="true"] { background:var(--yellow); border-color:var(--navy); color:var(--navy); }
+.thc textarea { min-height:76px; margin-top:10px; line-height:1.5; }
+.thc .why2 { grid-column:1 / -1; margin-top:2px; font-size:13px; }
+.thc .why2 > summary { cursor:pointer; color:var(--teal-ink); font-weight:700; list-style:none; display:inline-flex; align-items:center; gap:4px; min-height:32px; }
+.thc .why2 > summary::-webkit-details-marker { display:none; }
+.thc .why2 > summary::before { content:"▸"; transition:transform .15s; }
+.thc .why2[open] > summary::before { transform:rotate(90deg); }
+.thc .why2 p { margin:4px 0 0; line-height:1.6; color:var(--ink); white-space:pre-wrap; background:var(--bg2); border-radius:8px; padding:8px 10px; }
+.thprev { display:grid; gap:10px; margin-top:12px; }
+.thprev .pvh { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.thprev .pvh h2 { margin:0; }
+.thprev .feed { display:flex; gap:12px; align-items:flex-start; }
+.thprev .feed.sp { flex-direction:column; max-width:360px; }
+.thprev .pimg { position:relative; width:44%; flex:none; }
+.thprev .feed.sp .pimg { width:100%; }
+.thprev .pimg img { width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:10px; display:block; background:#111; }
+.thprev .dur { position:absolute; right:6px; bottom:6px; background:rgba(0,0,0,.82); color:#fff; font-size:12px; font-weight:700; padding:1px 5px; border-radius:4px; }
+.thprev .dur:empty { display:none; }
+.thprev .pt { font-size:15px; font-weight:700; line-height:1.4; color:var(--ink); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.thprev .pc { font-size:12px; color:var(--sub); margin-top:4px; }
 .side .ls { display:none; }   /* 細い形の時だけの短い名前 */
 .side button.fbnav { font-size:14px; color:var(--sub); }
 .side button.fbnav[aria-expanded="true"] { color:var(--teal-deep); }
@@ -442,6 +471,10 @@ details[open] > summary::before { transform:rotate(90deg); }
         <button class="btn primary big" id="write"><svg class="i" viewBox="0 0 24 24"><path d="M21 12a8.5 8.5 0 01-12.4 7.6L3.5 21l1.4-4.8A8.5 8.5 0 1121 12z"/><path d="M12 8.5v7M8.5 12h7"/></svg>この場面にコメント</button>
       </div>
     </div>
+    <div class="card thprev" id="thPrev" hidden>
+      <div class="pvh"><h2>一覧での見え方</h2><span class="chips"><button class="chip" data-pv="pc" aria-pressed="true">パソコン</button><button class="chip" data-pv="sp" aria-pressed="false">スマホ</button></span></div>
+      <div class="feed pc" id="feed"><div class="pimg"><img id="pvImg" alt=""><span class="dur" id="pvDur"></span></div><div><div class="pt" id="pvTitle"></div><div class="pc" id="pvCh">今、生きてます。</div></div></div>
+    </div>
 
     <section class="info" id="info">
       <div>
@@ -572,6 +605,13 @@ details[open] > summary::before { transform:rotate(90deg); }
       <div class="crow"><button class="btn quiet" id="ovatt"><svg class="i" viewBox="0 0 24 24"><path d="M21.4 11.1l-9.2 9.2a6 6 0 01-8.5-8.5l9.2-9.2a4 4 0 015.7 5.7l-9.2 9.2a2 2 0 01-2.8-2.8l8.5-8.5"/></svg>画像を付ける</button><span class="thumbs" id="ovthumbs"></span></div>
     </details>
 
+    <details class="card overall thc" id="thCard" open hidden>
+      <summary><span class="ovh"><h2>サムネ・題</h2><span class="sub">いちばん良い案を1つ選び、案ごとに ○・△・× を付けてください</span></span><span class="has" id="thHas" hidden>入力あり</span></summary>
+      <div class="cands" id="cands"></div>
+      <textarea id="thText" placeholder="例：&#10;・B の文字をもう少し大きく&#10;・題は A、サムネは B の組み合わせがいい" aria-label="サムネ・題へのコメント"></textarea>
+      <div class="crow"><button class="btn quiet" id="thAtt"><svg class="i" viewBox="0 0 24 24"><path d="M21.4 11.1l-9.2 9.2a6 6 0 01-8.5-8.5l9.2-9.2a4 4 0 015.7 5.7l-9.2 9.2a2 2 0 01-2.8-2.8l8.5-8.5"/></svg>画像を付ける</button><button class="btn quiet" id="thMic" hidden><svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg><span>声で入れる</span></button><span class="thumbs" id="ththumbs"></span></div>
+    </details>
+
     <div class="chips" id="filters" role="group" aria-label="コメントの絞り込み">
       <button class="chip" data-f="all" aria-pressed="true">すべて</button>
       <button class="chip" data-f="unsent" aria-pressed="false">未送信</button>
@@ -586,7 +626,7 @@ details[open] > summary::before { transform:rotate(90deg); }
   </aside>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="ver">Vcheck 動画確認ページ v1.16.2</div>
+<div class="ver">Vcheck 動画確認ページ v1.17.0</div>
 <input type="file" id="pick" accept="image/*" multiple hidden>
 <script>
 // Vcheck 動画確認ページ（版はいちばん下の .ver と VER）
@@ -829,20 +869,23 @@ mute.onclick = () => { if (!ready) return; const m = player.isMuted(); m ? playe
 // ---- 声で入れる（ブラウザの音声認識。Chrome・Edge・Safari・スマホ。Brave は仕組みを止めているので使えない）
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const mic = $("mic");
-let rec = null, listening = false, micBase = "";
-if (SR && !navigator.brave) { mic.hidden = false; $("micNote").hidden = false; }
-function micStop() { listening = false; mic.classList.remove("on"); mic.setAttribute("aria-label", "声で入れる"); mic.title = "声で入れる"; box.placeholder = "修正してほしい内容"; }
+let rec = null, listening = false, micBase = "", micBox = null, micBtn = null;   // 入れる先（個別修正の欄／サムネ・題の欄）
+const THPH = $("thText").placeholder;
+if (SR && !navigator.brave) { mic.hidden = false; $("micNote").hidden = false; $("thMic").hidden = false; }
+function micStop() { listening = false; for (const b of [mic, $("thMic")]) { b.classList.remove("on"); b.setAttribute("aria-label", "声で入れる"); b.title = "声で入れる"; }
+  box.placeholder = "修正してほしい内容"; $("thText").placeholder = THPH; }
 let micWant = false, micT0 = 0, micLast = 0, micTimer = null;
 const MIC_QUIET = 12000, MIC_MAX = 180000;   // 黙ったまま12秒、または全部で3分で止める
 function micStart() {
   // Android の Chrome は continuous だと結果ごとに「それまでの全文」を返し、足すと同じ言葉が重なる（要望「Pixel でマイクがバグる」）。
   // Android だけ一言ずつ聞き、切れたら onend で聞き直す（micBase に前の文を引き継ぐ）
   rec = new SR(); rec.lang = "ja-JP"; rec.interimResults = true; rec.continuous = !/Android/i.test(navigator.userAgent); rec.maxAlternatives = 1;
-  micBase = box.value ? box.value.replace(/\s+$/, "") + " " : "";
+  micBase = micBox.value ? micBox.value.replace(/\s+$/, "") + " " : "";
   rec.onresult = e => {
     let fin = "", mid = "";
     for (let i = 0; i < e.results.length; i++) { const r = e.results[i]; (r.isFinal ? (fin += r[0].transcript) : (mid += r[0].transcript)); }
-    box.value = (micBase + fin + mid).trim(); fitBox(); refreshComposer(); micLast = Date.now();
+    micBox.value = (micBase + fin + mid).trim(); micLast = Date.now();
+    if (micBox === box) { fitBox(); refreshComposer(); } else micBox.dispatchEvent(new Event("input"));
   };
   rec.onerror = e => {
     if (e.error === "no-speech" || e.error === "aborted") return;     // 少し黙っただけ：続けて聞き直す
@@ -854,20 +897,22 @@ function micStart() {
   };
   rec.onend = () => {     // ブラウザが途中で切っても、止めるまでは聞き直す
     if (micWant && Date.now() - micLast < MIC_QUIET && Date.now() - micT0 < MIC_MAX) { try { micStart(); return; } catch (err) {} }
-    micWant = false; clearInterval(micTimer); micStop(); if (box.value.trim()) toast("内容を確かめて送信のアイコンで追加");
+    micWant = false; clearInterval(micTimer); micStop(); if (micBox === box && box.value.trim()) toast("内容を確かめて送信のアイコンで追加");
   };
   rec.start();
 }
-mic.onclick = () => {
-  if (listening && rec) { micWant = false; rec.stop(); return; }
-  if (pinned === null && !pin()) return;
+function startMic(btn, target, needPin) {
+  if (listening && rec) { micWant = false; rec.stop(); return; }   // 聞いている時はどちらのボタンでも止める
+  if (needPin && pinned === null && !pin()) return;
+  micBox = target; micBtn = btn;
   try {
     micWant = true; micT0 = micLast = Date.now(); micStart();
-    listening = true; mic.classList.add("on"); mic.setAttribute("aria-label", "声の入力を止める"); mic.title = "声の入力を止める"; box.placeholder = "話してください…（終わったらもう一度押す）";
+    listening = true; btn.classList.add("on"); btn.setAttribute("aria-label", "声の入力を止める"); btn.title = "声の入力を止める"; target.placeholder = "話してください…（終わったらもう一度押す）";
     clearInterval(micTimer); micTimer = setInterval(() => { if (micWant && (Date.now() - micLast > MIC_QUIET || Date.now() - micT0 > MIC_MAX)) { micWant = false; try { rec.stop(); } catch (e) {} } }, 1000);
   }
   catch (err) { micWant = false; micStop(); toast("声の入力を始められませんでした"); }
-};
+}
+mic.onclick = () => startMic(mic, box, true);
 
 // ---- 画像（参考の絵柄やスクショ。ページで縮めてから持つ）と全体修正
 let pendImgs = [], overall = { text: "", images: [], sentText: null, sentN: 0 };
@@ -895,9 +940,10 @@ async function addImages(files, where) {
   let n = 0;
   for (const f of files) {
     if (!f.type.startsWith("image/")) continue;
-    if (where !== "overall" && pinned === null && !pin()) return;
+    if (where === "entry" && pinned === null && !pin()) return;
     const u = await shrink(f); n++;
     if (where === "overall") { overall.images.push(u); saveOverall(); showOv(); updState(); }
+    else if (where === "thumbs") { th.images.push(u); saveTh(); showThImgs(); $("thHas").hidden = !thHas(); updState(); }
     else { pendImgs.push(u); showPend(); refreshComposer(); }
   }
   if (n) toast("画像を付けました");
@@ -912,6 +958,81 @@ for (const [sel, where] of [[".overall", "overall"], ["#composer", "entry"]]) {
   document.querySelector(sel).addEventListener("drop", e => { e.preventDefault(); addImages([...e.dataTransfer.files], where); });
 }
 showOv();
+
+// ---- サムネ・題（v1.17）。案は thumbs/<動画ID>.json：{"cands":[{"k":"A","img":"<動画ID>/A.jpg","title":"…","why":"この案にした根拠（任意）"}]}（img は json からの相対）。?th=<json の URL> でも可
+let TH = [], th = { best: "", marks: {}, text: "", images: [], sent: "" }, pv = "pc", pvK = "", whyOpen = new Set();
+try { th = Object.assign(th, JSON.parse(localStorage.getItem(KEY + ":thumbs") || "{}")); } catch (e) {}
+function saveTh() { try { localStorage.setItem(KEY + ":thumbs", JSON.stringify(th)); } catch (e) {} }
+function thSig() { return JSON.stringify([th.best, th.marks, (th.text || "").trim(), th.images.length]); }
+function thHas() { return !!(th.best || Object.keys(th.marks).length || (th.text || "").trim() || th.images.length); }
+function thPending() { return TH.length && thHas() && thSig() !== th.sent ? 1 : 0; }
+function thLine() {
+  const ms = TH.map(c => c.k + "：" + (th.marks[c.k] || "－")).join("　");
+  return "【サムネ・題】いちばん：" + (th.best || "未選択") + "　／　" + ms + ((th.text || "").trim() ? "\n" + th.text.trim() : "") + (th.images.length ? "（画像 " + th.images.length + " 枚）" : "");
+}
+function showThImgs() { thumbs($("ththumbs"), th.images, i => { th.images.splice(i, 1); saveTh(); showThImgs(); $("thHas").hidden = !thHas(); updState(); }); }
+function retryImg(im) { im.onerror = () => { if (im.dataset.r) return; im.dataset.r = "1"; const u = im.src; im.src = u + (u.includes("?") ? "&" : "?") + "r=1"; }; }   // 読めなかったら1回だけ読み直す
+function renderPv() {
+  const c = TH.find(x => x.k === (pvK || th.best)) || TH[0]; if (!c) return;
+  if (!$("pvImg").src.startsWith(c.img)) { delete $("pvImg").dataset.r; $("pvImg").src = c.img; }
+  $("pvImg").alt = "サムネ案 " + c.k; $("pvTitle").textContent = c.title;
+  $("pvDur").textContent = (typeof canTime === "function" && canTime() && P.d()) ? fmt(P.d()) : "";
+  $("feed").className = "feed " + pv;
+  document.querySelectorAll("[data-pv]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.pv === pv)));
+}
+function renderTh() {
+  const box = $("cands"); box.innerHTML = "";
+  for (const c of TH) {
+    const d = document.createElement("div"); d.className = "cand" + (th.best === c.k ? " best" : "");
+    const im = document.createElement("img"); retryImg(im); im.src = c.img; im.alt = "サムネ案 " + c.k; im.loading = "lazy"; im.title = "大きく見る";
+    im.onclick = () => window.open(c.img, "_blank", "noopener");
+    const r = document.createElement("div");
+    const k = document.createElement("div"); k.className = "ck"; k.textContent = "案 " + c.k;
+    const t = document.createElement("div"); t.className = "tt"; t.textContent = c.title;
+    const m = document.createElement("div"); m.className = "marks";
+    const b = document.createElement("button"); b.className = "chip bestbtn"; b.textContent = "いちばん"; b.setAttribute("aria-pressed", String(th.best === c.k));
+    b.onclick = () => { th.best = th.best === c.k ? "" : c.k; pvK = c.k; thChanged(); };
+    m.append(b);
+    for (const s of ["○", "△", "×"]) {
+      const x = document.createElement("button"); x.className = "chip"; x.textContent = s; x.setAttribute("aria-pressed", String(th.marks[c.k] === s));
+      x.setAttribute("aria-label", "案 " + c.k + " に " + s);
+      x.onclick = () => { if (th.marks[c.k] === s) delete th.marks[c.k]; else th.marks[c.k] = s; pvK = c.k; thChanged(); };
+      m.append(x);
+    }
+    d.onmouseenter = () => { pvK = c.k; renderPv(); };
+    r.append(k, t, m); d.append(im, r);
+    if (c.why) {           // なぜこの案にしたか（開け閉め。開いたままにする）
+      const w = document.createElement("details"); w.className = "why2"; w.open = whyOpen.has(c.k);
+      const s = document.createElement("summary"); s.textContent = "なぜこの案？";
+      const p = document.createElement("p"); p.textContent = c.why;
+      w.addEventListener("toggle", () => { w.open ? whyOpen.add(c.k) : whyOpen.delete(c.k); });
+      w.append(s, p); d.append(w);
+    }
+    box.append(d);
+  }
+  $("thHas").hidden = !thHas(); renderPv();
+}
+function thChanged() { saveTh(); renderTh(); updState(); }
+document.querySelectorAll("[data-pv]").forEach(b => b.onclick = () => { pv = b.dataset.pv; renderPv(); });
+$("thText").value = th.text || ""; showThImgs();
+$("thAtt").onclick = () => { pickFor = "thumbs"; pick.click(); };
+$("thText").addEventListener("paste", e => { const fs = [...((e.clipboardData || {}).files || [])].filter(f => f.type.startsWith("image/")); if (fs.length) { e.preventDefault(); addImages(fs, "thumbs"); } });
+$("thCard").addEventListener("dragover", e => e.preventDefault());
+$("thCard").addEventListener("drop", e => { e.preventDefault(); addImages([...e.dataTransfer.files], "thumbs"); });
+$("thMic").onclick = () => startMic($("thMic"), $("thText"), false);
+$("thText").addEventListener("input", () => { th.text = $("thText").value; saveTh(); $("thHas").hidden = !thHas(); updState(); });
+(async () => {
+  if (!VID) return;
+  const src = Q.get("th") || ("thumbs/" + VID + ".json");
+  try {
+    const r = await fetch(src, { cache: "no-store" }); if (!r.ok) return;
+    const j = await r.json(), base = new URL(src, location.href);
+    TH = (j.cands || []).filter(c => c && c.k && c.img).map(c => ({ k: String(c.k), title: String(c.title || ""), why: String(c.why || ""), img: new URL(c.img, base).href }));
+    if (!TH.length) return;
+    $("thCard").hidden = false; $("thPrev").hidden = false; retryImg($("pvImg")); renderTh(); updState();
+    setTimeout(renderPv, 4000);          // 長さは動画を読み込んでから
+  } catch (e) {}
+})();
 
 // ---- 返し方：送信（受け取り口があるページ）とコピー（手で返す）を分けて表示する
 const RECEIVER = Q.get("to") || "https://script.google.com/macros/s/AKfycbwvGfAhFiiCpCXHqsWG-9pUg8dW_lAUeq3GvgfcA5GGjVkxiMTjJeihB6EO-IWKkLrnug/exec";   // 受け取り口（このページを置いた人の Google。ほかの人は自分の GitHub にコピーして自分の URL に替える）
@@ -928,11 +1049,11 @@ if (RECEIVER) {
   $("flow3").textContent = "終わったら「コメントを全てコピー」してメッセージで相手に送る";
   $("returnNote").textContent = "「コメントを全てコピー」を押して、メッセージに貼り付けて相手に送ってください";
   $("returnWhy").open = true; $("returnWhy").querySelector("summary").hidden = true;   // 送り先が無い時は説明を出したまま
-  $("att").hidden = true; $("ovatt").parentElement.hidden = true;     // 受け取り口が無い時は画像を届けられないので出さない
+  $("att").hidden = true; $("ovatt").parentElement.hidden = true; $("thAtt").hidden = true;     // 受け取り口が無い時は画像を届けられないので出さない
 }
 function ovPending() { return (overall.text || overall.images.length) && (overall.text !== overall.sentText || overall.images.length !== overall.sentN) ? 1 : 0; }
 function updState() {
-  const el = $("saveState"), unsent = items.filter(it => !it.sent).length + ovPending(), any = items.length || ovPending();
+  const el = $("saveState"), unsent = items.filter(it => !it.sent).length + ovPending() + thPending(), any = items.length || ovPending() || thPending() || (TH.length && thHas());
   updMeta(unsent);
   el.hidden = !any;
   if (!any) return;
@@ -944,20 +1065,22 @@ function updState() {
 }
 function showResult(ok, msg) { const r = $("result"); r.hidden = false; r.className = "result " + (ok ? "ok" : "ng"); r.textContent = msg; toast(msg, 3000); }
 sendBtn.onclick = async () => {
-  const todo = items.filter(it => !it.sent), ovNew = !!ovPending();
-  if (!todo.length && !ovNew) { showResult(true, items.length ? "送るものはありません（すべて送信済みです）" : "まだコメントがありません"); return; }
+  const todo = items.filter(it => !it.sent), ovNew = !!ovPending(), thNew = !!thPending();
+  if (!todo.length && !ovNew && !thNew) { showResult(true, items.length ? "送るものはありません（すべて送信済みです）" : "まだコメントがありません"); return; }
   sendBtn.disabled = true; sendBtn.querySelector(".lbl").textContent = "送信中…";
   const body = { video: VID, title: TITLE, name: nameEl.value.trim(),
     overall: ovNew ? { text: overall.text, images: overall.images } : null,
-    items: todo.map(it => ({ t: Math.round(it.t * 100) / 100, tc: fmt(it.t), sec: it.sec || "", text: it.text,
-                             ink: it.d ? "@" + it.t.toFixed(2) + " " + inkDesc(it.d) : "", images: it.images || [] })) };
+    items: (thNew ? [{ t: -1, tc: "サムネ・題", sec: "", text: thLine(), ink: "", images: th.images }] : []).concat(   // サムネ・題は時刻 -1 の1件（受け取り口はそのまま）
+           todo.map(it => ({ t: Math.round(it.t * 100) / 100, tc: fmt(it.t), sec: it.sec || "", text: it.text,
+                             ink: it.d ? "@" + it.t.toFixed(2) + " " + inkDesc(it.d) : "", images: it.images || [] }))) };
   try {
     const r = await fetch(RECEIVER, { method: "POST", body: JSON.stringify(body) });
     const j = await r.json();
     if (!j.ok) throw new Error("ng");
     todo.forEach(it => it.sent = true); save();
     if (ovNew) { overall.sentText = overall.text; overall.sentN = overall.images.length; saveOverall(); }
-    render(); showResult(true, "レビュー完了。" + (todo.length + (ovNew ? 1 : 0)) + " 件が動画の作り手に届きました。");
+    if (thNew) { th.sent = thSig(); saveTh(); }
+    render(); updState(); showResult(true, "レビュー完了。" + (todo.length + (ovNew ? 1 : 0) + (thNew ? 1 : 0)) + " 件が動画の作り手に届きました。");
   } catch (e) { showResult(false, "送れませんでした。電波を確かめて、もう一度「レビュー完了」を押してください（コメントはこのブラウザに残っています）。"); }
   sendBtn.disabled = false; sendBtn.querySelector(".lbl").textContent = "レビュー完了";
 };
@@ -966,7 +1089,7 @@ function asText() {          // コピーする文の形は v1.7 までと同じ
   const head = "【" + (TITLE || VID) + "】確認コメント " + items.length + "件" + (who ? "（" + who + "）" : "");
   const ovt = (overall.text || "").trim();
   const top = ovt || overall.images.length ? ["【全体修正】", ovt + (overall.images.length ? "（画像 " + overall.images.length + " 枚。送信で届きます）" : ""), "ーーーーー"] : [];
-  return [head].concat(top, items.map(it => fmt(it.t) + " " + it.text.replace(/\n/g, "\n　") + (it.sec ? "　（区間：" + it.sec + "）" : "") + (it.images && it.images.length ? "　（画像 " + it.images.length + " 枚）" : "") + (it.d ? "\n　✎ @" + it.t.toFixed(2) + " " + inkDesc(it.d) : ""))).join("\n");
+  return [head].concat(top, TH.length && thHas() ? [thLine(), "ーーーーー"] : [], items.map(it => fmt(it.t) + " " + it.text.replace(/\n/g, "\n　") + (it.sec ? "　（区間：" + it.sec + "）" : "") + (it.images && it.images.length ? "　（画像 " + it.images.length + " 枚）" : "") + (it.d ? "\n　✎ @" + it.t.toFixed(2) + " " + inkDesc(it.d) : ""))).join("\n");
 }
 async function copyText(txt) {
   try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(txt); return true; } } catch (e) {}
@@ -977,7 +1100,7 @@ async function copyText(txt) {
   } catch (e) { return false; }
 }
 copyBtn.onclick = async () => {
-  if (!items.length && !(overall.text || "").trim()) { showResult(false, "まだコピーするコメントがありません"); return; }
+  if (!items.length && !(overall.text || "").trim() && !(TH.length && thHas())) { showResult(false, "まだコピーするコメントがありません"); return; }
   const txt = asText(), cb = $("copyBox");
   if (await copyText(txt)) {
     cb.hidden = true;
@@ -1164,7 +1287,7 @@ SECTIONS.forEach(sc => {
 });
 $("secCap").hidden = !SECTIONS.length;
 // ---- Vcheck への要望（動画へのコメントとは別。同じ受け取り口に「vcheck-request」として届く）
-const FEEDBACK_ID = "vcheck-request", VER = "1.16.2";
+const FEEDBACK_ID = "vcheck-request", VER = "1.17.0";
 if (!RECEIVER) $("fbArea").hidden = true;      // 送り先が無いページでは出さない
 $("navFb").onclick = () => {
   const wasMini = WIDE() && document.body.classList.contains("mini");
@@ -1187,7 +1310,7 @@ $("fbSend").onclick = async () => {
 // ---- 画面の作り（左のメニュー・名前・題の下の情報・丸いボタン・絞り込み）
 let filt = "all";
 function updMeta(unsent) {
-  if (unsent === undefined) unsent = items.filter(it => !it.sent).length + ovPending();
+  if (unsent === undefined) unsent = items.filter(it => !it.sent).length + ovPending() + (typeof thPending === "function" ? thPending() : 0);
   const parts = [];
   if (canTime() && P.d()) parts.push("長さ " + fmt(P.d()));
   parts.push("コメント " + items.length + " 件");
