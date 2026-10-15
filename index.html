@@ -285,6 +285,9 @@ details[open] > summary::before { transform:rotate(90deg); }
 .overall .has { flex:none; font-size:12px; font-weight:800; color:var(--navy); background:var(--yellow); border-radius:999px; padding:2px 10px; }
 /* サムネ・題（v1.17） */
 .thc .cands { display:grid; gap:10px; }
+.thc .thst { margin:0; padding:10px 12px; border-radius:10px; background:var(--bg2); color:var(--ink); font-size:14px; font-weight:700; line-height:1.6; }   /* v1.18：案が無い時・作成中の時の文 */
+.thc .thst .sub2 { display:block; font-weight:400; font-size:12px; color:var(--sub); margin-top:2px; }
+.thc .thfrom { margin:0 0 8px; font-size:12px; color:var(--sub); line-height:1.5; }   /* v1.18：前の版の案を出している時 */
 .thc .cand { border:1px solid var(--line); border-radius:10px; padding:8px; display:grid; grid-template-columns:128px minmax(0,1fr); gap:10px; align-items:start; }
 .thc .cand.best { border:2px solid var(--teal-ink); background:var(--tint); padding:7px; }
 .thc .cand img { width:128px; aspect-ratio:16/9; object-fit:cover; border-radius:6px; cursor:zoom-in; background:#111; display:block; }
@@ -605,8 +608,10 @@ details[open] > summary::before { transform:rotate(90deg); }
       <div class="crow"><button class="btn quiet" id="ovatt"><svg class="i" viewBox="0 0 24 24"><path d="M21.4 11.1l-9.2 9.2a6 6 0 01-8.5-8.5l9.2-9.2a4 4 0 015.7 5.7l-9.2 9.2a2 2 0 01-2.8-2.8l8.5-8.5"/></svg>画像を付ける</button><span class="thumbs" id="ovthumbs"></span></div>
     </details>
 
-    <details class="card overall thc" id="thCard" open hidden>
+    <details class="card overall thc" id="thCard" open>
       <summary><span class="ovh"><h2>サムネ・題</h2><span class="sub">いちばん良い案を1つ選び、案ごとに ○・△・× を付けてください</span></span><span class="has" id="thHas" hidden>入力あり</span></summary>
+      <p class="thfrom" id="thFrom" hidden></p>
+      <p class="thst" id="thState">サムネ・題の案を読み込み中…</p>
       <div class="cands" id="cands"></div>
       <textarea id="thText" placeholder="例：&#10;・B の文字をもう少し大きく&#10;・題は A、サムネは B の組み合わせがいい" aria-label="サムネ・題へのコメント"></textarea>
       <div class="crow"><button class="btn quiet" id="thAtt"><svg class="i" viewBox="0 0 24 24"><path d="M21.4 11.1l-9.2 9.2a6 6 0 01-8.5-8.5l9.2-9.2a4 4 0 015.7 5.7l-9.2 9.2a2 2 0 01-2.8-2.8l8.5-8.5"/></svg>画像を付ける</button><button class="btn quiet" id="thMic" hidden><svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg><span>声で入れる</span></button><span class="thumbs" id="ththumbs"></span></div>
@@ -626,7 +631,7 @@ details[open] > summary::before { transform:rotate(90deg); }
   </aside>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="ver">Vcheck 動画確認ページ v1.17.0</div>
+<div class="ver">Vcheck 動画確認ページ v1.18.0</div>
 <input type="file" id="pick" accept="image/*" multiple hidden>
 <script>
 // Vcheck 動画確認ページ（版はいちばん下の .ver と VER）
@@ -965,10 +970,11 @@ try { th = Object.assign(th, JSON.parse(localStorage.getItem(KEY + ":thumbs") ||
 function saveTh() { try { localStorage.setItem(KEY + ":thumbs", JSON.stringify(th)); } catch (e) {} }
 function thSig() { return JSON.stringify([th.best, th.marks, (th.text || "").trim(), th.images.length]); }
 function thHas() { return !!(th.best || Object.keys(th.marks).length || (th.text || "").trim() || th.images.length); }
-function thPending() { return TH.length && thHas() && thSig() !== th.sent ? 1 : 0; }
+function thPending() { return thHas() && thSig() !== th.sent ? 1 : 0; }   // v1.18：案が無くてもサムネへのコメントは送れる
 function thLine() {
   const ms = TH.map(c => c.k + "：" + (th.marks[c.k] || "－")).join("　");
-  return "【サムネ・題】いちばん：" + (th.best || "未選択") + "　／　" + ms + ((th.text || "").trim() ? "\n" + th.text.trim() : "") + (th.images.length ? "（画像 " + th.images.length + " 枚）" : "");
+  if (!TH.length) return "【サムネ・題】（" + ($("thState").textContent || "案なし") + "）" + ((th.text || "").trim() ? "\n" + th.text.trim() : "") + (th.images.length ? "（画像 " + th.images.length + " 枚）" : "");
+  return "【サムネ・題】" + (TH_FROM ? "（" + TH_FROM + "）" : "") + "いちばん：" + (th.best || "未選択") + "　／　" + ms + ((th.text || "").trim() ? "\n" + th.text.trim() : "") + (th.images.length ? "（画像 " + th.images.length + " 枚）" : "");
 }
 function showThImgs() { thumbs($("ththumbs"), th.images, i => { th.images.splice(i, 1); saveTh(); showThImgs(); $("thHas").hidden = !thHas(); updState(); }); }
 function retryImg(im) { im.onerror = () => { if (im.dataset.r) return; im.dataset.r = "1"; const u = im.src; im.src = u + (u.includes("?") ? "&" : "?") + "r=1"; }; }   // 読めなかったら1回だけ読み直す
@@ -1021,17 +1027,46 @@ $("thCard").addEventListener("dragover", e => e.preventDefault());
 $("thCard").addEventListener("drop", e => { e.preventDefault(); addImages([...e.dataTransfer.files], "thumbs"); });
 $("thMic").onclick = () => startMic($("thMic"), $("thText"), false);
 $("thText").addEventListener("input", () => { th.text = $("thText").value; saveTh(); $("thHas").hidden = !thHas(); updState(); });
+// v1.18：案の探し方（ユーザー 2026-10-15「引き継げるものにしてほしい」「サムネが無い場合は、無いと文字を返して。機能が丸ごと見えなくなって、なくなったのかと思った」）
+//  1. ?th=<json の URL>  2. thumbs/<動画ID>.json  3. thumbs/series/<回の名前>.json（動画の題から「確認用 v005」「完成版」を外した名前。同じ回の前の版の案を引き継ぐ）
+//  json に {"status":"making"} … 「サムネは現在作成中です」、{"status":"none"} … 「サムネは作成されておりません」（"note" で一言足せる）。どれも無ければ「まだ作成されていません」
+let TH_FROM = "";
+function seriesKey(t) { return String(t || "").replace(/[\s　]*(確認用)?[\s　]*v\d+[\s　]*$/i, "").replace(/[\s　]*(確認用|完成版)[\s　]*$/, "").trim(); }
+function thStateText(kind, note) {
+  const st = $("thState");
+  const msg = { loading: "サムネ・題の案を読み込み中…", making: "サムネは現在作成中です", none: "サムネは作成されておりません", missing: "サムネはまだ作成されておりません" }[kind] || "";
+  st.textContent = msg; st.hidden = !msg;
+  if (note) { const n = document.createElement("span"); n.className = "sub2"; n.textContent = note; st.append(n); }
+  if (kind !== "loading") $("thCard").querySelector(".sub").textContent = kind ? "サムネへの要望があれば、下に書いて送れます" : "サムネ案があります。いちばん良い案を1つ選び、案ごとに ○・△・× を付けてください";
+}
+async function thFetch(src) {
+  try { const r = await fetch(src, { cache: "no-store" }); if (!r.ok) return null; return { j: await r.json(), base: new URL(src, location.href) }; } catch (e) { return null; }
+}
+function thUse(got, from) {
+  const j = got.j;
+  if (j.status && !(j.cands || []).length) { thStateText(j.status === "none" ? "none" : "making", j.note || ""); return true; }
+  TH = (j.cands || []).filter(c => c && c.k && c.img).map(c => ({ k: String(c.k), title: String(c.title || ""), why: String(c.why || ""), img: new URL(c.img, got.base).href }));
+  if (!TH.length) return false;
+  TH_FROM = from ? (j.label ? j.label + "の案" : "前の版の案") : "";
+  if (TH_FROM) { $("thFrom").textContent = "この版の案はまだ無いので、同じ回の" + TH_FROM + "を出しています。"; $("thFrom").hidden = false; }
+  thStateText("");
+  $("thPrev").hidden = false; retryImg($("pvImg")); renderTh(); updState();
+  setTimeout(renderPv, 4000);          // 長さは動画を読み込んでから
+  return true;
+}
 (async () => {
-  if (!VID) return;
-  const src = Q.get("th") || ("thumbs/" + VID + ".json");
-  try {
-    const r = await fetch(src, { cache: "no-store" }); if (!r.ok) return;
-    const j = await r.json(), base = new URL(src, location.href);
-    TH = (j.cands || []).filter(c => c && c.k && c.img).map(c => ({ k: String(c.k), title: String(c.title || ""), why: String(c.why || ""), img: new URL(c.img, base).href }));
-    if (!TH.length) return;
-    $("thCard").hidden = false; $("thPrev").hidden = false; retryImg($("pvImg")); renderTh(); updState();
-    setTimeout(renderPv, 4000);          // 長さは動画を読み込んでから
-  } catch (e) {}
+  if (!VID) { $("thCard").hidden = true; return; }
+  thStateText("loading");
+  const own = await thFetch(Q.get("th") || ("thumbs/" + VID + ".json"));
+  if (own && thUse(own, false)) return;
+  for (let i = 0; i < 40 && !TITLE; i++) await new Promise(r => setTimeout(r, 500));   // 題は動画を読み込むと分かる（最大 20 秒待つ）
+  const key = seriesKey(TITLE);
+  if (key) {
+    const ser = await thFetch("thumbs/series/" + encodeURIComponent(key) + ".json");
+    if (ser && thUse(ser, true)) return;
+  }
+  thStateText("missing");
+  updState();
 })();
 
 // ---- 返し方：送信（受け取り口があるページ）とコピー（手で返す）を分けて表示する
@@ -1053,7 +1088,7 @@ if (RECEIVER) {
 }
 function ovPending() { return (overall.text || overall.images.length) && (overall.text !== overall.sentText || overall.images.length !== overall.sentN) ? 1 : 0; }
 function updState() {
-  const el = $("saveState"), unsent = items.filter(it => !it.sent).length + ovPending() + thPending(), any = items.length || ovPending() || thPending() || (TH.length && thHas());
+  const el = $("saveState"), unsent = items.filter(it => !it.sent).length + ovPending() + thPending(), any = items.length || ovPending() || thPending() || thHas();
   updMeta(unsent);
   el.hidden = !any;
   if (!any) return;
@@ -1089,7 +1124,7 @@ function asText() {          // コピーする文の形は v1.7 までと同じ
   const head = "【" + (TITLE || VID) + "】確認コメント " + items.length + "件" + (who ? "（" + who + "）" : "");
   const ovt = (overall.text || "").trim();
   const top = ovt || overall.images.length ? ["【全体修正】", ovt + (overall.images.length ? "（画像 " + overall.images.length + " 枚。送信で届きます）" : ""), "ーーーーー"] : [];
-  return [head].concat(top, TH.length && thHas() ? [thLine(), "ーーーーー"] : [], items.map(it => fmt(it.t) + " " + it.text.replace(/\n/g, "\n　") + (it.sec ? "　（区間：" + it.sec + "）" : "") + (it.images && it.images.length ? "　（画像 " + it.images.length + " 枚）" : "") + (it.d ? "\n　✎ @" + it.t.toFixed(2) + " " + inkDesc(it.d) : ""))).join("\n");
+  return [head].concat(top, thHas() ? [thLine(), "ーーーーー"] : [], items.map(it => fmt(it.t) + " " + it.text.replace(/\n/g, "\n　") + (it.sec ? "　（区間：" + it.sec + "）" : "") + (it.images && it.images.length ? "　（画像 " + it.images.length + " 枚）" : "") + (it.d ? "\n　✎ @" + it.t.toFixed(2) + " " + inkDesc(it.d) : ""))).join("\n");
 }
 async function copyText(txt) {
   try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(txt); return true; } } catch (e) {}
@@ -1287,7 +1322,7 @@ SECTIONS.forEach(sc => {
 });
 $("secCap").hidden = !SECTIONS.length;
 // ---- Vcheck への要望（動画へのコメントとは別。同じ受け取り口に「vcheck-request」として届く）
-const FEEDBACK_ID = "vcheck-request", VER = "1.17.0";
+const FEEDBACK_ID = "vcheck-request", VER = "1.18.0";
 if (!RECEIVER) $("fbArea").hidden = true;      // 送り先が無いページでは出さない
 $("navFb").onclick = () => {
   const wasMini = WIDE() && document.body.classList.contains("mini");
