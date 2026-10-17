@@ -355,8 +355,9 @@ details[open] > summary::before { transform:rotate(90deg); }
   .main, .aside { display:contents; }
   .main > *:not(.player), .aside > * { margin:0 12px; }
   .player { position:sticky; top:0; z-index:20; order:0; }
-  /* スマホの並びは前と同じ：動画 → 題 → コメントを書く → 詳しい操作 → レビューが終わったら → 全体修正 → 一覧 */
-  .info { order:1; } #composer { order:2; } #more { order:3; } #returnCard { order:4; } #ovCard { order:5; } #filters { order:6; } #listCard { order:7; }
+  /* スマホの並び（v1.18.1）：動画 → 題 → コメントを書く（個別修正） → 全体修正 → サムネ・題 → 一覧での見え方 → 詳しい操作 → レビューが終わったら → 一覧
+     （2026-10-18 ユーザー「スマホ画面だけど個別修正のすぐ下に全体修正書くところほしい。レビュー完了等は下でよい」。v1.17〜1.18.0 はサムネの欄が動画のすぐ下に出て、コメントを書く所が下へずれていた） */
+  .info { order:1; } #composer { order:2; } #ovCard { order:3; } #thCard { order:4; } #thPrev { order:5; } #more { order:6; } #returnCard { order:7; } #filters { order:8; } #listCard { order:9; }
   .top { position:relative; }
   .search { display:none; }
   .info { padding:4px 0 0; }
@@ -631,7 +632,7 @@ details[open] > summary::before { transform:rotate(90deg); }
   </aside>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="ver">Vcheck 動画確認ページ v1.18.0</div>
+<div class="ver">Vcheck 動画確認ページ v1.18.1</div>
 <input type="file" id="pick" accept="image/*" multiple hidden>
 <script>
 // Vcheck 動画確認ページ（版はいちばん下の .ver と VER）
@@ -1322,7 +1323,7 @@ SECTIONS.forEach(sc => {
 });
 $("secCap").hidden = !SECTIONS.length;
 // ---- Vcheck への要望（動画へのコメントとは別。同じ受け取り口に「vcheck-request」として届く）
-const FEEDBACK_ID = "vcheck-request", VER = "1.18.0";
+const FEEDBACK_ID = "vcheck-request", VER = "1.18.1";
 if (!RECEIVER) $("fbArea").hidden = true;      // 送り先が無いページでは出さない
 $("navFb").onclick = () => {
   const wasMini = WIDE() && document.body.classList.contains("mini");
