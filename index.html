@@ -130,7 +130,9 @@ a.btn { text-decoration:none; }
 .btn.quiet { color:var(--sub); font-weight:600; }
 .btn.danger { border-color:#E7B4AE; color:var(--danger); }
 .btn.on { background:var(--yellow); border-color:var(--navy); color:var(--navy); }
-.controls #write { width:100%; }
+.controls { display:flex; gap:10px; }
+.controls #write { flex:1 1 auto; width:auto; }
+.controls #wrReturn { flex:none; padding:4px 22px; }   /* v1.18.2：「この場面にコメント」の右にもレビュー完了（大きく表示でも押せるように。2026-10-19 ユーザー） */
 .cnt { display:inline-grid; place-items:center; min-width:22px; height:22px; padding:0 6px; border-radius:999px; background:var(--yellow); color:var(--navy); font-size:12px; font-weight:800; }
 
 /* 動画の下の題（配信サイトの番組名・題・情報・丸いボタン） */
@@ -350,6 +352,7 @@ details[open] > summary::before { transform:rotate(90deg); }
 /* 1000px 以下：1列（スマホ）。動画と操作はページの上に貼りつく */
 @media (max-width: 1000px) {
   #focusBtn { display:none; }
+  .controls #wrReturn { display:none; }   /* スマホは題の下と一番下にある */
   :root { --headH:56px; }
   .wrap { display:flex; flex-direction:column; align-items:stretch; gap:12px; padding:0 0 16px; }
   .main, .aside { display:contents; }
@@ -473,6 +476,7 @@ details[open] > summary::before { transform:rotate(90deg); }
       </div>
       <div class="controls">
         <button class="btn primary big" id="write"><svg class="i" viewBox="0 0 24 24"><path d="M21 12a8.5 8.5 0 01-12.4 7.6L3.5 21l1.4-4.8A8.5 8.5 0 1121 12z"/><path d="M12 8.5v7M8.5 12h7"/></svg>この場面にコメント</button>
+        <button class="btn done big" id="wrReturn"><span id="wrReturnIcon"></span><span id="wrReturnLabel">レビュー完了</span> <span class="cnt" id="unsentWr" hidden>0</span></button>
       </div>
     </div>
     <div class="card thprev" id="thPrev" hidden>
@@ -632,7 +636,7 @@ details[open] > summary::before { transform:rotate(90deg); }
   </aside>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="ver">Vcheck 動画確認ページ v1.18.1</div>
+<div class="ver">Vcheck 動画確認ページ v1.18.2</div>
 <input type="file" id="pick" accept="image/*" multiple hidden>
 <script>
 // Vcheck 動画確認ページ（版はいちばん下の .ver と VER）
@@ -1323,7 +1327,7 @@ SECTIONS.forEach(sc => {
 });
 $("secCap").hidden = !SECTIONS.length;
 // ---- Vcheck への要望（動画へのコメントとは別。同じ受け取り口に「vcheck-request」として届く）
-const FEEDBACK_ID = "vcheck-request", VER = "1.18.1";
+const FEEDBACK_ID = "vcheck-request", VER = "1.18.2";
 if (!RECEIVER) $("fbArea").hidden = true;      // 送り先が無いページでは出さない
 $("navFb").onclick = () => {
   const wasMini = WIDE() && document.body.classList.contains("mini");
@@ -1353,7 +1357,7 @@ function updMeta(unsent) {
   if (RECEIVER) parts.push(unsent ? "未送信 " + unsent + " 件" : (items.length ? "すべて送信済み" : ""));
   else if (items.length) parts.push("このブラウザに保存済み");
   const m = $("meta"); if (m) { m.innerHTML = ""; parts.filter(Boolean).forEach(t => { const sp = document.createElement("span"); sp.textContent = t; m.append(sp); }); }
-  for (const id of ["unsentN", "unsentTop"]) { const n = $(id); n.hidden = !unsent; n.textContent = unsent; }
+  for (const id of ["unsentN", "unsentTop", "unsentWr"]) { const n = $(id); n.hidden = !unsent; n.textContent = unsent; }
 }
 function goTo(id) {
   const el = $(id); if (!el) return;
@@ -1388,6 +1392,8 @@ $("toReturnIcon").innerHTML = RECEIVER ? '<svg class="i" viewBox="0 0 24 24"><pa
 $("toReturn").onclick = () => (RECEIVER ? sendBtn : copyBtn).click();
 $("topReturnLabel").textContent = $("toReturnLabel").textContent; $("topReturnIcon").innerHTML = $("toReturnIcon").innerHTML;
 $("topReturn").onclick = () => (RECEIVER ? sendBtn : copyBtn).click();
+$("wrReturnLabel").textContent = $("toReturnLabel").textContent; $("wrReturnIcon").innerHTML = $("toReturnIcon").innerHTML;
+$("wrReturn").onclick = () => (RECEIVER ? sendBtn : copyBtn).click();
 $("ytOpen").href = "https://www.youtube.com/watch?v=" + VID;
 $("shareBtn").onclick = async () => { toast(await copyText(location.href) ? "このページのリンクをコピーしました。確認してほしい人に送れます" : "リンクをコピーできませんでした。アドレス欄から長押しでコピーしてください", 2600); };
 document.querySelectorAll("#filters .chip").forEach(c => c.onclick = () => {
