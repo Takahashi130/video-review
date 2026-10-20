@@ -393,9 +393,13 @@ details[open] > summary::before { transform:rotate(90deg); }
   /* キーボードを出している間：動画を小さくして、入力欄と「追加」が見える高さにする */
   body.typing .bar #seek, body.typing .bar .tc, body.typing .composer h2, body.typing .composer .when, body.typing #chint, body.typing .composer .how, body.typing #secs { display:none; }
   body.typing .info { display:none; }
-  body.typing .vwrap { aspect-ratio:auto; height:min(56.25vw, calc(var(--vvh) * .22)); }
+  body.typing .vwrap { aspect-ratio:auto; height:min(56.25vw, calc(var(--vvh) * .30)); }   /* v1.18.4：.22→.30（動画を大きめに。2026-10-21 ユーザー） */
   body.typing .bar { padding-top:0; padding-bottom:0; }
-  body.typing #box { min-height:56px; }
+  body.typing #box { min-height:88px; }   /* v1.18.4：56→88（入力欄を大きめに） */
+  /* v1.18.4：個別修正を書いている間は、全体修正・サムネ・題・サムネの見え方を隠して、動画と入力欄だけにする（2026-10-21 ユーザー「入力するときにサムネ・題と全体修正は表示されなくてもOK。個別修正入力と動画を画面を大きめに」） */
+  body.typing #ovCard, body.typing #thCard, body.typing #thPrev { display:none !important; }
+  /* キーボードの出ないパソコンで画面を狭くしている時は、動画を元の大きさ（16:9）のまま */
+  @media (hover:hover) and (pointer:fine) { body.typing .vwrap { aspect-ratio:16/9; height:auto; } }
   body.typing .controls { padding-top:4px; padding-bottom:4px; }
   body.typing #write { min-height:44px; }
   body.typing .card.composer { padding:10px 12px; }
@@ -638,7 +642,7 @@ details[open] > summary::before { transform:rotate(90deg); }
   </aside>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="ver">Vcheck 動画確認ページ v1.18.3</div>
+<div class="ver">Vcheck 動画確認ページ v1.18.4</div>
 <input type="file" id="pick" accept="image/*" multiple hidden>
 <script>
 // Vcheck 動画確認ページ（版はいちばん下の .ver と VER）
@@ -1329,7 +1333,7 @@ SECTIONS.forEach(sc => {
 });
 $("secCap").hidden = !SECTIONS.length;
 // ---- Vcheck への要望（動画へのコメントとは別。同じ受け取り口に「vcheck-request」として届く）
-const FEEDBACK_ID = "vcheck-request", VER = "1.18.3";
+const FEEDBACK_ID = "vcheck-request", VER = "1.18.4";
 if (!RECEIVER) $("fbArea").hidden = true;      // 送り先が無いページでは出さない
 $("navFb").onclick = () => {
   const wasMini = WIDE() && document.body.classList.contains("mini");
