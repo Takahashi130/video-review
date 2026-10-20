@@ -132,7 +132,9 @@ a.btn { text-decoration:none; }
 .btn.on { background:var(--yellow); border-color:var(--navy); color:var(--navy); }
 .controls { display:flex; gap:10px; }
 .controls #write { flex:1 1 auto; width:auto; }
-.controls #wrReturn { flex:none; padding:4px 22px; }   /* v1.18.2：「この場面にコメント」の右にもレビュー完了（大きく表示でも押せるように。2026-10-19 ユーザー） */
+.controls #wrReturn { flex:none; padding:4px 22px; }
+#write { display:none !important; }   /* v1.18.3：「この場面にコメント」は隠す（消さない）。右の欄（個別修正）を押すと、その時刻で止まってコメントになる。スマホで場所をとって打ちにくかった（2026-10-20 ユーザー「みんな使ってない」「隠すだけでいい」「打ちにくい」「スペースがなくて」） */
+.controls:has(#write) #wrReturn { flex:1; }   /* v1.18.2：「この場面にコメント」の右にもレビュー完了（大きく表示でも押せるように。2026-10-19 ユーザー） */
 .cnt { display:inline-grid; place-items:center; min-width:22px; height:22px; padding:0 6px; border-radius:999px; background:var(--yellow); color:var(--navy); font-size:12px; font-weight:800; }
 
 /* 動画の下の題（配信サイトの番組名・題・情報・丸いボタン） */
@@ -522,7 +524,7 @@ details[open] > summary::before { transform:rotate(90deg); }
         <h3>使い方</h3>
         <ol class="flow" id="flow">
           <li><b>1</b><span>動画を再生</span></li>
-          <li><b>2</b><span>直したい場面で<span class="nw">「この場面にコメント」</span></span></li>
+          <li><b>2</b><span>直したい場面で止めて<span class="nw">「個別修正」の欄に書く</span></span></li>
           <li><b>3</b><span id="flow3">終わったら「レビュー完了」</span></li>
         </ol>
       </section>
@@ -557,7 +559,7 @@ details[open] > summary::before { transform:rotate(90deg); }
             <dt><kbd>スペース</kbd></dt><dd>再生・停止</dd>
             <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>1コマ戻る・進む</dd>
             <dt><kbd>Shift</kbd>＋<kbd>←</kbd> <kbd>→</kbd></dt><dd>5秒戻る・進む</dd>
-            <dt><kbd>Enter</kbd></dt><dd>この場面にコメント（書いている時は追加）</dd>
+            <dt><kbd>Enter</kbd></dt><dd>この場面でコメントを書く（書いている時は追加）</dd>
             <dt><kbd>Shift</kbd>＋<kbd>Enter</kbd></dt><dd>改行</dd>
             <dt><kbd>Esc</kbd></dt><dd>やめる</dd>
             <dt><kbd>T</kbd></dt><dd>大きく表示／元に戻す</dd>
@@ -570,7 +572,7 @@ details[open] > summary::before { transform:rotate(90deg); }
   <aside class="aside">
     <div class="card composer" id="composer">
       <h2>個別修正</h2>
-      <div class="when"><span class="stamp" id="stamp" hidden></span><span id="whenNote">「この場面にコメント」をクリックしてください</span></div>
+      <div class="when"><span class="stamp" id="stamp" hidden></span><span id="whenNote">直したい場面で止めて、この欄に書いてください</span></div>
       <div class="cbox">
         <textarea id="box" rows="3" placeholder="修正してほしい内容" autocomplete="off" enterkeyhint="enter" aria-label="コメント"></textarea>
         <div class="emo" id="emoPick" role="group" aria-label="絵文字を入れる" hidden></div>
@@ -629,14 +631,14 @@ details[open] > summary::before { transform:rotate(90deg); }
     <div id="listCard">
       <div class="listhead" id="listHead"><h2>コメント</h2><span id="count"></span></div>
       <ol id="list"></ol>
-      <p class="empty" id="empty">まだコメントはありません。直したい場面で「この場面にコメント」を押してください。</p>
+      <p class="empty" id="empty">まだコメントはありません。直したい場面で止めて、「個別修正」の欄に書いてください。</p>
     </div>
 
 
   </aside>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="ver">Vcheck 動画確認ページ v1.18.2</div>
+<div class="ver">Vcheck 動画確認ページ v1.18.3</div>
 <input type="file" id="pick" accept="image/*" multiple hidden>
 <script>
 // Vcheck 動画確認ページ（版はいちばん下の .ver と VER）
@@ -742,17 +744,17 @@ function refreshComposer(warn) {
   const set = pinned !== null;
   stamp.textContent = set ? fmt(pinned) : ""; stamp.hidden = !set; stamp.classList.toggle("set", set);
   const s2 = $("stamp2"); s2.textContent = set ? fmt(pinned) : "時刻なし"; s2.classList.toggle("set", set);
-  $("whenNote").textContent = set ? "この時刻にコメントします（5秒ずつ前後に動かせます）" : "「この場面にコメント」をクリックしてください";
+  $("whenNote").textContent = set ? "この時刻にコメントします（5秒ずつ前後に動かせます）" : "直したい場面で止めて、この欄に書いてください";
   $("cancel").hidden = !set && !box.value;
   $("add").disabled = !hasDraft() || (!set && !canTime());
   const h = $("chint");
   if (!canTime() && (warn || box.value)) {
     h.hidden = false; h.className = "hint warn";
     h.textContent = vstate === "error" ? "動画が読み込めていないため、時刻を入れられません。書いた文は残ります。動画が表示されてから「追加」を押してください。"
-                                       : "動画を読み込み中です。表示されてから「この場面にコメント」を押してください。";
+                                       : "動画を読み込み中です。表示されてから、この欄に書いてください。";
   } else if (set && !TOUCH) { h.hidden = false; h.className = "hint"; h.textContent = "Enter で追加・Shift＋Enter で改行・Esc でやめる"; }
   else h.hidden = true;
-  const dn = $("drawNote"); dn.textContent = set ? "動画の上に指やマウスで描けます。描いたものはこのコメントと一緒に残ります。" : "「この場面にコメント」を押すと、動画の上に指やマウスで描けます。描いたものはコメントと一緒に残ります。";
+  const dn = $("drawNote"); dn.textContent = set ? "動画の上に指やマウスで描けます。描いたものはこのコメントと一緒に残ります。" : "右の欄（個別修正）に書き始めると、動画の上に指やマウスで描けます。描いたものはコメントと一緒に残ります。";
   drawBar.querySelectorAll("button").forEach(b => b.disabled = !set);
 }
 function commit() {
@@ -780,7 +782,7 @@ $("add").onclick = () => commit();
 $("cancel").onclick = () => unpin(false);
 ["add", "cancel", "att", "mic", "drawOpen", "emo"].forEach(id => $(id).addEventListener("mousedown", e => e.preventDefault()));   // 押しても入力欄から外れない
 box.addEventListener("input", () => { if (pinned === null && canTime()) pin(); fitBox(); refreshComposer(); });
-box.addEventListener("focus", () => { document.body.classList.add("typing"); if (pinned === null && canTime() && TOUCH) pin(); setTimeout(scrollToComposer, 250); });
+box.addEventListener("focus", () => { document.body.classList.add("typing"); if (pinned === null && canTime()) pin(); setTimeout(scrollToComposer, 250); });   // v1.18.3：パソコンでも欄を押した時刻にする
 box.addEventListener("blur", () => setTimeout(() => { if (document.activeElement !== box) document.body.classList.remove("typing"); }, 250));
 box.addEventListener("keydown", e => {
   if (e.isComposing || e.keyCode === 229) return;
@@ -1171,7 +1173,7 @@ function render() {
   const shownN = items.filter(pass).length;
   $("count").textContent = !items.length ? "" : filt === "all" ? items.length + " 件" : shownN + " / " + items.length + " 件";
   $("empty").hidden = !!shownN;
-  $("empty").textContent = items.length ? "この条件のコメントはありません" : "まだコメントはありません。直したい場面で「この場面にコメント」を押してください。";
+  $("empty").textContent = items.length ? "この条件のコメントはありません" : "まだコメントはありません。直したい場面で止めて、「個別修正」の欄に書いてください。";
   items.forEach((it, i) => {
     if (!pass(it)) return;
     const li = document.createElement("li"); if (it.sent) li.className = "sentrow";
@@ -1327,7 +1329,7 @@ SECTIONS.forEach(sc => {
 });
 $("secCap").hidden = !SECTIONS.length;
 // ---- Vcheck への要望（動画へのコメントとは別。同じ受け取り口に「vcheck-request」として届く）
-const FEEDBACK_ID = "vcheck-request", VER = "1.18.2";
+const FEEDBACK_ID = "vcheck-request", VER = "1.18.3";
 if (!RECEIVER) $("fbArea").hidden = true;      // 送り先が無いページでは出さない
 $("navFb").onclick = () => {
   const wasMini = WIDE() && document.body.classList.contains("mini");
