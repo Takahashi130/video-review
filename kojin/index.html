@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#029AAA">
+<title>個人タスク</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2306304F'/%3E%3Crect x='10' y='14' width='12' height='36' rx='3' fill='white'/%3E%3Crect x='26' y='14' width='12' height='26' rx='3' fill='%23E5E647'/%3E%3Crect x='42' y='14' width='12' height='18' rx='3' fill='%2329C3CF'/%3E%3C/svg%3E">
+<style>
+  :root { --bg:#ffffff; --fg:#06304F; --sub:#55636e; --btn:#029AAA; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0f1b24; --fg:#e8f1f5; --sub:#9fb2bf; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font-family:system-ui,"Hiragino Sans","Noto Sans JP",sans-serif; }
+  main { max-width:520px; margin:0 auto; padding:32px 16px; line-height:1.7; }
+  h1 { font-size:22px; margin:0 0 12px; }
+  p { color:var(--sub); margin:0 0 12px; }
+  ol { padding-left:20px; color:var(--sub); }
+  a.btn, button { display:block; width:100%; box-sizing:border-box; text-align:center; padding:14px; margin:12px 0; border-radius:10px; border:0; font-size:17px; font-weight:700; background:var(--btn); color:#fff; text-decoration:none; }
+  button.sub { background:transparent; color:var(--btn); border:2px solid var(--btn); }
+</style>
+</head>
+<body>
+<main id="m">
+  <h1>個人タスクのかんばん</h1>
+  <p>このページをホーム画面に置くと、押すだけで GitHub の「個人タスク管理」のかんばんが開きます。</p>
+  <ol>
+    <li>ブラウザの「︙」→「ホーム画面に追加」で、このページを追加する</li>
+    <li>追加できたら、下の「追加できた」を押す</li>
+  </ol>
+  <button id="ok">追加できた（次から自動で開く）</button>
+  <a class="btn" href="https://github.com/users/Takahashi130/projects/7/views/2">今すぐかんばんを開く</a>
+  <button class="sub" id="reset">自動で開くのをやめる</button>
+</main>
+<script>
+  var KANBAN = "https://github.com/users/Takahashi130/projects/7/views/2";
+  var KEY = "kojin-kanban-ready";
+  function get(){ try { return localStorage.getItem(KEY); } catch(e) { return null; } }
+  function set(v){ try { if (v) localStorage.setItem(KEY, "1"); else localStorage.removeItem(KEY); } catch(e) {} }
+  if (get() === "1" && location.hash !== "#setup") { location.replace(KANBAN); }
+  document.getElementById("ok").onclick = function(){ set(true); location.replace(KANBAN); };
+  document.getElementById("reset").onclick = function(){ set(false); alert("自動で開くのをやめました"); };
+</script>
+</body>
+</html>
