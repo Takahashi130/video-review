@@ -230,6 +230,7 @@ details[open] > summary::before { transform:rotate(90deg); }
 .why > summary { font-size:13px; color:var(--sub); min-height:34px; margin-top:4px; }
 .namefield { margin:10px 0 0; max-width:420px; }
 .namefield .fl b { color:var(--ink); font-weight:800; font-size:15px; margin-right:2px; }
+.namefield input.need { outline:2px solid #D92D20; outline-offset:1px; }
 .ret .band { padding:14px 16px 12px; background:var(--bg2); border-bottom:1px solid var(--line); color:var(--ink); }
 .ret .band h2 { margin:0; font-size:17px; }
 .ret .band p { margin:2px 0 0; font-size:13px; color:var(--sub); }
@@ -494,7 +495,7 @@ details[open] > summary::before { transform:rotate(90deg); }
     <section class="info" id="info">
       <div>
         <h1 id="ttl">（動画の題を読み込み中）</h1>
-        <label class="field namefield"><span class="fl"><b>あなたの名前</b>（任意。コメントに付きます）</span><input id="name" autocomplete="off" placeholder="例：山田"></label>
+        <label class="field namefield"><span class="fl"><b>あなたの名前</b>（必須。コメントに付きます）</span><input id="name" autocomplete="off" placeholder="例：山田"></label>
       </div>
       <div class="acts3">
         <button class="act" id="shareBtn"><span class="c"><svg class="i" viewBox="0 0 24 24"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></svg></span>リンク</button>
@@ -670,6 +671,7 @@ const box = $("box"), stamp = $("stamp"), list = $("list"), nameEl = $("name");
 let items = [];
 try { items = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { items = []; }
 try { nameEl.value = localStorage.getItem("ytreview:name") || ""; } catch (e) {}
+nameEl.addEventListener("input", () => { if (nameEl.value.trim()) nameEl.classList.remove("need"); });
 nameEl.addEventListener("change", () => { try { localStorage.setItem("ytreview:name", nameEl.value.trim()); } catch (e) {} });
 let saveOK = true;
 function save() { try { localStorage.setItem(KEY, JSON.stringify(items)); saveOK = true; } catch (e) { saveOK = false; } }
@@ -1114,6 +1116,10 @@ function showResult(ok, msg) { const r = $("result"); r.hidden = false; r.classN
 sendBtn.onclick = async () => {
   const todo = items.filter(it => !it.sent), ovNew = !!ovPending(), thNew = !!thPending();
   if (!todo.length && !ovNew && !thNew) { showResult(true, items.length ? "送るものはありません（すべて送信済みです）" : "まだコメントがありません"); return; }
+  if (!nameEl.value.trim()) {   // 名前は必須（2026-11-18：名前のないコメントは誰からか分からず、確認が遅れた）
+    nameEl.classList.add("need"); nameEl.scrollIntoView({ block: "center" }); nameEl.focus();
+    showResult(false, "名前を入れてから「レビュー完了」を押してください（だれのコメントか分かるように）"); return;
+  }
   sendBtn.disabled = true; sendBtn.querySelector(".lbl").textContent = "送信中…";
   const body = { video: VID, title: TITLE, name: nameEl.value.trim(),
     overall: ovNew ? { text: overall.text, images: overall.images } : null,
